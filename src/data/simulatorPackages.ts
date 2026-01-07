@@ -15,40 +15,25 @@ export interface SimulatorPackage {
 
 export const simulatorPackages: SimulatorPackage[] = [
     {
-        id: 'hems-dispatch-xp',
-        name: 'X-Plane Dispatch Connector v5.2 (Lua)',
-        description: 'Single-file tactical link with non-blocking network core. Eliminates simulator stutter during transmission.',
-        pluginType: 'FlyWithLua Script',
+        id: 'hems-dispatch-bridge',
+        name: 'HEMS Tactical Bridge v5.2 (External)',
+        description: 'High-performance React-based bridge. Uses a dedicated background process to stream telemetry without impacting simulator frame rates.',
+        pluginType: 'Standalone Node/Vite App',
         downloads: [
-            { version: 'Download v5.2 (.lua)', url: '/downloads/hems-dispatch-xp/hems-dispatch-xp.lua' },
+            { version: 'Download Bridge Source (.zip)', url: '/downloads/hems-dispatch' },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
-            'Requires FlyWithLua installed in X-Plane.',
-            'Move the .lua file to your Scripts folder.',
-            'Edit the file to include your API Key.',
-        ],
-    },
-    {
-        id: 'hems-external-bridge',
-        name: 'HEMS Pro External Bridge v5.2 (Node.js)',
-        description: 'High-performance external gateway. Uses WebSockets for real-time telemetry without affecting sim FPS.',
-        pluginType: 'Node.js Application',
-        downloads: [
-            { version: 'Download Source (GitHub)', url: 'https://github.com' },
-        ],
-        documentationUrl: '/documentation',
-        installationSteps: [
-            'Requires Node.js v18+ installed on your machine.',
-            'Download the source and run "npm install".',
-            'Configure your .env with your HEMS Security Token.',
-            'Run "npm start" alongside X-Plane.',
+            'Download and extract the bridge folder.',
+            'Ensure Node.js is installed on your machine.',
+            'Run "npm install" and "npm start" within the folder.',
+            'Connect via your API Key from the Personnel Profile.',
         ],
     },
     {
         id: 'hems-web-client',
         name: 'HEMS Web Simulator Client v5.2',
-        description: 'Built-in browser simulator for testing and training without X-Plane running.',
+        description: 'Built-in browser simulator for testing and training without an external simulator running.',
         pluginType: 'Internal Web App',
         downloads: [
             { version: 'Launch Simulator Client', url: '/simulator-client' },
@@ -56,7 +41,7 @@ export const simulatorPackages: SimulatorPackage[] = [
         documentationUrl: '/simulator-client',
         installationSteps: [
             'Launch the client and select an active mission.',
-            'Toggle "Engage Auto-Fly" to simulate telemetry.',
+            'Toggle "Engage Tactical Link" to simulate telemetry.',
         ],
     },
 ];
