@@ -71,13 +71,13 @@ const Documentation = () => {
                   <div className="space-y-2">
                       <h4 className="font-bold text-sm uppercase text-primary">The Quick Terminal Fix</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                          If you see an error about "appropriate access privileges," follow these steps:
+                          If you see an error about "appropriate access privileges," you must manually grant permission:
                       </p>
                       <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
-                          <li>Open the <strong>Terminal</strong> app (found in Applications/Utilities).</li>
-                          <li>Type <code className="bg-black text-[#00ff41] px-1 px-1 rounded">chmod +x </code> (make sure there is a space at the end).</li>
-                          <li>Drag the <code className="font-mono text-foreground">LAUNCH_BRIDGE.command</code> file directly into the Terminal window.</li>
-                          <li>Press <strong>Enter</strong>. You can now double-click the file to launch the Bridge.</li>
+                          <li>Open the <strong>Terminal</strong> app.</li>
+                          <li>Type <code className="bg-black text-[#00ff41] px-2 py-0.5 rounded font-bold">chmod +x </code> <span className="text-red-500 font-black underline">(Ensure there is a SPACE after the x)</span></li>
+                          <li>Drag the <code className="font-mono text-foreground">LAUNCH_BRIDGE.command</code> file directly into the window.</li>
+                          <li>Press <strong>Enter</strong>.</li>
                       </ol>
                   </div>
                   
