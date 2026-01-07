@@ -6,18 +6,17 @@ const port = 8080;
 
 app.use(cors());
 app.use(express.json());
-
-// Serve the HUD interface files
 app.use(express.static(path.join(__dirname, 'ui')));
 
 let currentTelemetry = null;
 let lastHeartbeat = 0;
+let currentMissionId = null;
 
-// 1. RECEIVE FROM X-PLANE (Lua script)
+// 1. RECEIVE TELEMETRY FROM X-PLANE
 app.post('/telemetry', (req, res) => {
-    // Log every packet to the terminal so the user knows it's working
-    console.log(`[DATA] Packet received: Alt ${Math.round(req.body.altitudeFt)}ft | GS ${Math.round(req.body.groundSpeedKts)}kts`);
-    
+    // Lua script might send mission_id if configured
+    if (req.body.mission_id) currentMissionId = req.body.mission_id;
+
     currentTelemetry = {
         ...req.body,
         timestamp: Date.now()
@@ -26,18 +25,34 @@ app.post('/telemetry', (req, res) => {
     res.status(200).send("OK");
 });
 
-// 2. SEND TO HUD UI
+// 2. STATUS ENDPOINT FOR UI
 app.get('/api/status', (req, res) => {
     res.json({ 
         simConnected: (Date.now() - lastHeartbeat) < 5000,
-        telemetry: currentTelemetry 
+        telemetry: currentTelemetry,
+        missionId: currentMissionId
     });
+});
+
+// 3. CHAT RELAY TO SUPABASE DISPATCH AGENT
+app.post('/api/chat', async (req, res) => {
+    const { message } = req.body;
+    
+    // In a production environment, we would use the user's API key here.
+    // For now, we simulate a response or proxy if the key is provided in a config.
+    console.log(`[RADIO] PILOT: ${message}`);
+    
+    // Simulating dispatcher acknowledgment for local mode
+    // You can extend this to call the Supabase Edge Function directly
+    const mockResponse = "DISPATCH COPIES. STANDING BY FOR PROGRESS REPORT.";
+    
+    res.json({ response: mockResponse });
 });
 
 app.listen(port, () => {
     console.log(`\n========================================`);
-    console.log(`[SUCCESS] HEMS Tactical Bridge is ACTIVE.`);
-    console.log(`[LINK] Open this in your browser: http://localhost:${port}`);
-    console.log(`[UPLINK] Awaiting data from X-Plane...`);
+    console.log(`[SUCCESS] HEMS COMMAND CENTER IS ONLINE`);
+    console.log(`[LOCAL] http://localhost:${port}`);
+    console.log(`[UPLINK] Awaiting X-Plane Data Link...`);
     console.log(`========================================\n`);
 });
