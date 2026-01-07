@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { HemsBase } from '@/data/hemsData';
 import { HistoricalMission } from '@/hooks/useMissions';
-import { Activity, Navigation, Fuel } from 'lucide-react';
+import { Activity, Navigation, Fuel, Satellite } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import MapContainerWrapper from '@/components/MapContainer';
@@ -52,7 +52,6 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
     const { data: livePilots } = useLivePilots();
     const center: [number, number] = [40.4406, -79.9959];
 
-    // Filter out live pilots who are already represented by active missions to avoid double markers
     const missionUserIds = new Set(missions.map(m => m.user_id));
     const standalonePilots = livePilots?.filter(p => !missionUserIds.has(p.user_id)) || [];
 
@@ -136,15 +135,27 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
 
             {/* Tactical Info Overlay */}
             <div className="absolute bottom-6 right-6 z-[500] pointer-events-none">
-                <div className="bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-[#00ff41] font-mono shadow-2xl">
-                    <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] mb-2 border-b border-[#00ff41]/20 pb-2">
-                        <Activity className="w-4 h-4 animate-pulse" />
-                        <span>RADAR_SYNC_v4.9</span>
+                <div className="bg-black/90 backdrop-blur-md p-5 rounded-2xl border border-primary/20 text-[#00ff41] font-mono shadow-2xl min-w-[200px]">
+                    <div className="flex items-center justify-between border-b border-primary/20 pb-2 mb-3">
+                        <div className="flex items-center space-x-2">
+                            <Satellite className="w-4 h-4 text-primary animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live Radar</span>
+                        </div>
+                        <div className="text-[8px] font-bold opacity-40 uppercase tracking-widest">v5.2-STABLE</div>
                     </div>
-                    <div className="space-y-1 text-[9px] font-bold uppercase">
-                        <p>MISSION TRACKS: {missions.length}</p>
-                        <p>FREE UNITS: {standalonePilots.length}</p>
-                        <p>UPLINK: NOMINAL</p>
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center text-[9px] font-bold uppercase">
+                            <span className="text-white/40">Sorties Active</span>
+                            <span className="text-primary font-black">{missions.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[9px] font-bold uppercase">
+                            <span className="text-white/40">Free Units</span>
+                            <span className="text-[#00ff41] font-black">{standalonePilots.length}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[9px] font-bold uppercase">
+                            <span className="text-white/40">Uplink Status</span>
+                            <span className="text-green-500 font-black">NOMINAL</span>
+                        </div>
                     </div>
                 </div>
             </div>
