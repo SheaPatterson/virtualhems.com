@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { BookOpen, Terminal, Cpu, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { BookOpen, Terminal, Cpu, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Separator } from '@/components/ui/separator';
 
@@ -54,21 +54,40 @@ const Documentation = () => {
                 <h4 className="font-black uppercase text-xs mb-3">OUTSIDE SIMULATOR (DESKTOP)</h4>
                 <p className="text-xs font-bold mb-2">The Tactical Bridge App</p>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Keep this folder on your Desktop. Launch it via the <code className="font-mono">.bat</code> (Windows) or <code className="font-mono">.command</code> (Mac) file. This is your primary mission window.
+                    Keep this folder on your Desktop. Launch it via the <code className="font-mono">.bat</code> (Windows) or <code className="font-mono">.command</code> (Mac) file.
                 </p>
             </Card>
         </div>
       </section>
 
-      <div className="bg-blue-500/10 border border-blue-600/30 p-6 rounded-2xl flex items-start space-x-4">
-          <AlertCircle className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-              <p className="text-sm font-black uppercase text-blue-600">Note for X-Plane 11 Pilots</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                  The HEMS v5.2 protocol uses standard DataRefs shared by both XP11 and XP12. No separate configuration is required. Ensure you are using the version of <strong>FlyWithLua</strong> specifically built for X-Plane 11 to avoid script initialization errors.
-              </p>
+      {/* Mac Specific Permissions Section */}
+      <section className="space-y-6">
+          <div className="flex items-center space-x-3">
+              <ShieldAlert className="w-6 h-6 text-orange-500" />
+              <h2 className="text-2xl font-black uppercase italic tracking-tight">macOS Execution Guide</h2>
           </div>
-      </div>
+          <div className="space-y-4">
+              <div className="p-6 bg-muted/30 border-2 rounded-2xl space-y-4">
+                  <div>
+                      <h4 className="font-bold text-sm mb-1 uppercase">1. Bypassing Gatekeeper</h4>
+                      <p className="text-xs text-muted-foreground">
+                          Because the Bridge is from an unidentified developer, macOS will block a standard double-click. 
+                          <strong> Right-click</strong> the <code className="font-mono">.command</code> file and select <strong>Open</strong>. In the resulting dialog, click <strong>Open</strong> again.
+                      </p>
+                  </div>
+                  <Separator />
+                  <div>
+                      <h4 className="font-bold text-sm mb-1 uppercase">2. Fix "Permission Denied"</h4>
+                      <p className="text-xs text-muted-foreground mb-3">
+                          If you see a terminal error saying you don't have permission, you must manually flag the file as executable:
+                      </p>
+                      <div className="bg-black p-4 rounded-lg font-mono text-[10px] text-[#00ff41] border border-[#00ff41]/20">
+                          chmod +x LAUNCH_BRIDGE.command
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </section>
 
       <Separator />
 

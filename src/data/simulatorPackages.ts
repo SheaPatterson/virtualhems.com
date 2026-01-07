@@ -43,7 +43,7 @@ export const simulatorPackages: SimulatorPackage[] = [
             'Extract the .zip to your desktop.',
             'Windows: Double-click "LAUNCH_BRIDGE.bat".',
             'Mac: Right-Click "LAUNCH_BRIDGE.command" and select "Open".',
-            'Enter your API Key into the Bridge UI when prompted.',
+            'Note: Use "chmod +x" in terminal if you get a permission error.',
         ],
     },
     {
