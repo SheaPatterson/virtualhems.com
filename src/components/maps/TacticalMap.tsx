@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { HemsBase } from '@/data/hemsData';
 import { HistoricalMission } from '@/hooks/useMissions';
-import { Activity, Navigation, Fuel, Satellite } from 'lucide-react';
+import { Satellite } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import MapContainerWrapper from '@/components/MapContainer';
@@ -120,10 +120,10 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
                                     <span className="font-black italic text-primary">{pilot.callsign}</span>
                                     <Badge variant="secondary" className="text-[9px]">AVAILABLE</Badge>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                    <div className="flex items-center"><Navigation className="w-2.5 h-2.5 mr-1" /> {pilot.altitude_ft} FT</div>
-                                    <div className="flex items-center"><Activity className="w-2.5 h-2.5 mr-1" /> {pilot.ground_speed_kts} KT</div>
-                                    <div className="flex items-center"><Fuel className="w-2.5 h-2.5 mr-1" /> {pilot.fuel_remaining_lbs} LB</div>
+                                <div className="space-y-1 text-[10px]">
+                                    <p><strong>Altitude:</strong> {pilot.altitude_ft} FT</p>
+                                    <p><strong>Speed:</strong> {pilot.ground_speed_kts} KT</p>
+                                    <p><strong>Fuel:</strong> {pilot.fuel_remaining_lbs} LB</p>
                                 </div>
                             </div>
                         </Popup>
