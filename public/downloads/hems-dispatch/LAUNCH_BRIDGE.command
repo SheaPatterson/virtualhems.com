@@ -1,16 +1,20 @@
 #!/bin/bash
-# HEMS Tactical Bridge Launcher for macOS/Linux
-
-# Navigate to the directory where the script is located
 cd "$(dirname "$0")"
+echo "========================================"
+echo "   HEMS TACTICAL BRIDGE AUTO-LOADER"
+echo "========================================"
 
-# Check if node is installed
-if ! command -v node &> /dev/null
-then
-    echo "Node.js is required but not found. Please install Node.js to run the bridge."
-    exit 1
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "[!] Dependencies missing. Initializing first-time setup..."
+    npm install
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] npm install failed. Ensure Node.js is installed."
+        read -p "Press enter to exit..."
+        exit 1
+    fi
+    echo "[SUCCESS] Setup complete."
 fi
 
-# Start the server
-echo "Starting HEMS Tactical Bridge Server..."
+echo "[STATION] Starting HEMS Tactical Bridge Server..."
 node server.js
