@@ -41,7 +41,8 @@ export const simulatorPackages: SimulatorPackage[] = [
         documentationUrl: '/documentation',
         installationSteps: [
             'Extract the .zip to your desktop.',
-            'Open a terminal in that folder and run "npm install && npm start".',
+            'Windows: Double-click "LAUNCH_BRIDGE.bat".',
+            'Mac: Right-Click "LAUNCH_BRIDGE.command" and select "Open".',
             'Enter your API Key into the Bridge UI when prompted.',
         ],
     },
