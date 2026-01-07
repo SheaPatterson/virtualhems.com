@@ -6,13 +6,18 @@ import { Send, Mic, Activity, Radio } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { MissionReport as IMissionReport } from '@/data/hemsData';
-import { sendCrewMessageToAgent } from '@/integrations/dispatch/api';
+import { sendCrewMessageToAgent, fetchDispatchAudio } from '@/integrations/dispatch/api';
 import { useMissionLogs } from '@/hooks/useMissionLogs';
 import { toast } from 'sonner';
 
 interface DispatcherChatProps {
     missionReport: IMissionReport | null;
 }
+
+// Audio elements for effects
+// NOTE: User must place a short MP3 file for radio static at /public/audio/radio_static.mp3
+const staticAudio = new Audio('/audio/radio_static.mp3'); 
+staticAudio.volume = 0.3;
 
 const DispatcherChat: React.FC<DispatcherChatProps> = ({ missionReport }) => {
     const { logs, addLog } = useMissionLogs(missionReport?.missionId);
@@ -21,25 +26,33 @@ const DispatcherChat: React.FC<DispatcherChatProps> = ({ missionReport }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // AI VOICE SYNTHESIS - OPTIMIZED FOR AVIATION
-    const speak = (text: string) => {
-        if (!window.speechSynthesis) {
-            console.warn("Speech synthesis not supported.");
-            return;
+    // NEW: High-Quality Audio Playback
+    const playAudioFromUrl = (url: string) => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = url;
+        } else {
+            audioRef.current = new Audio(url);
         }
-        
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Microsoft David')) || voices[0];
-        
-        if (preferredVoice) utterance.voice = preferredVoice;
-        utterance.rate = 1.1; // Slightly faster for professional feel
-        utterance.pitch = 0.85; // Lower pitch for radio fidelity
-        utterance.volume = 1.0;
 
-        window.speechSynthesis.speak(utterance);
+        // Add static before and after the main audio
+        staticAudio.currentTime = 0;
+        staticAudio.play();
+
+        audioRef.current.onloadeddata = () => {
+            // Stop static shortly after audio starts
+            setTimeout(() => staticAudio.pause(), 500); 
+            audioRef.current?.play();
+        };
+
+        audioRef.current.onended = () => {
+            // Play static briefly after audio ends
+            staticAudio.currentTime = 0;
+            staticAudio.play();
+            setTimeout(() => staticAudio.pause(), 500);
+        };
     };
 
     useEffect(() => {
@@ -95,24 +108,18 @@ const DispatcherChat: React.FC<DispatcherChatProps> = ({ missionReport }) => {
         setIsProcessing(false);
         if (response) {
             await addLog('Dispatcher', response.responseText);
-            // The useEffect below will handle speaking
+            
+            // NEW: Fetch and play high-quality audio
+            const audioUrl = await fetchDispatchAudio(response.responseText);
+            if (audioUrl) {
+                playAudioFromUrl(audioUrl);
+            } else {
+                console.warn("High-quality TTS failed. Audio playback skipped.");
+            }
         }
     };
 
-    useEffect(() => {
-        if (logs.length > 0) {
-            const lastLog = logs[logs.length - 1];
-            if (lastLog.sender === 'Dispatcher' || lastLog.sender === 'System') {
-                const logTime = new Date(lastLog.timestamp).getTime();
-                const now = new Date().getTime();
-                // Only speak if the message is fresh (less than 2 seconds old)
-                // This prevents speaking old messages on initial load.
-                if (now - logTime < 2000) {
-                    speak(lastLog.message);
-                }
-            }
-        }
-    }, [logs]);
+    // Removed the old useEffect that handled window.speechSynthesis
 
     useEffect(() => {
         if (scrollAreaRef.current) {

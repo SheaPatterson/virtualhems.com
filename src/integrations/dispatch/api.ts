@@ -40,3 +40,34 @@ export const sendCrewMessageToAgent = async (missionId: string, message: string,
         return null;
     }
 };
+
+export const fetchDispatchAudio = async (text: string): Promise<string | null> => {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            console.error("Cannot fetch audio: User not authenticated.");
+            return null;
+        }
+
+        const response = await fetch(`${BASE_URL}/generate-tts-audio`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ text }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.audio_url as string;
+
+    } catch (error) {
+        console.error("TTS Audio API Error:", error);
+        return null;
+    }
+};
