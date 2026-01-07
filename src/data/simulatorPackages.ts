@@ -17,32 +17,47 @@ export interface SimulatorPackage {
 export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'xplane-uplink',
-        name: 'X-Plane Lua Uplink v5.2',
-        description: 'The "Drag & Drop" component. Connects X-Plane core data to the Tactical Bridge UI.',
+        name: 'Step 1: Lua Uplink Script',
+        description: 'The "Data Pipe". This tiny script reads your aircraft position and sends it to the Bridge UI.',
         pluginType: 'FlyWithLua Script',
         downloads: [
-            { version: 'Download Uplink Script (.lua)', url: '/downloads/hems-dispatch-xp.lua', isScript: true },
+            { version: 'Download Uplink (.lua)', url: '/downloads/hems-dispatch-xp.lua', isScript: true },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
-            'Ensure FlyWithLua is installed in X-Plane.',
-            'Drop the .lua file into Resources/plugins/FlyWithLua/Scripts/',
-            'The script will automatically detect the Bridge UI.',
+            'Requirement: FlyWithLua (X-Plane Plugin).',
+            'Drag "hems-dispatch-xp.lua" into X-Plane/Resources/plugins/FlyWithLua/Scripts/.',
+            'Restart X-Plane to initialize the pipe.',
         ],
     },
     {
         id: 'hems-dispatch-bridge',
-        name: 'HEMS Tactical Bridge UI v5.2',
-        description: 'The visual "Popup" window. Highly styled mission command center with maps, AI comms, and performance data.',
-        pluginType: 'Standalone React App',
+        name: 'Step 2: Tactical Bridge UI',
+        description: 'The "Popup Window". This is the high-fidelity UI where you view maps, AI comms, and patient data.',
+        pluginType: 'Standalone App',
         downloads: [
             { version: 'Download Bridge UI (.zip)', url: '/downloads/hems-dispatch' },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
-            'Extract the zip and run "npm install && npm start".',
-            'This window can be used on a second monitor or overlayed.',
-            'Connects to X-Plane via the Uplink Script above.',
+            'Extract the .zip to your desktop.',
+            'Open a terminal in that folder and run "npm install && npm start".',
+            'Enter your API Key into the Bridge UI when prompted.',
+        ],
+    },
+    {
+        id: 'hems-web-client',
+        name: 'Optional: In-Browser Tester',
+        description: 'No download needed. Test the system logic directly from this website.',
+        pluginType: 'Web Component',
+        downloads: [
+            { version: 'Open Web Simulator', url: '/simulator-client' },
+        ],
+        documentationUrl: '/documentation',
+        installationSteps: [
+            'Click "Open Web Simulator" below.',
+            'Enter your API Key to authenticate.',
+            'Use this to test Dispatch logic without opening X-Plane.',
         ],
     },
 ];
