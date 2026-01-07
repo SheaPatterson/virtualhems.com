@@ -110,7 +110,7 @@ const SimulatorPackageCard: React.FC<SimulatorPackageCardProps> = ({ pkg, apiKey
                             >
                                 <a 
                                     href={download.url} 
-                                    download={!isExternalLink}
+                                    download // Forces browser to download instead of navigate
                                     target={isExternalLink ? "_blank" : "_self"}
                                     rel={isExternalLink ? "noopener noreferrer" : ""}
                                 >

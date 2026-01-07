@@ -36,7 +36,7 @@ export const simulatorPackages: SimulatorPackage[] = [
         description: 'The "Popup Window". This is the high-fidelity UI where you view maps, AI comms, and patient data.',
         pluginType: 'Standalone App',
         downloads: [
-            { version: 'Download Bridge UI (.zip)', url: '/downloads/hems-dispatch' },
+            { version: 'Download Bridge UI (.zip)', url: '/downloads/hems-dispatch.zip' },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
