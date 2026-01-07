@@ -1,33 +1,30 @@
 #!/bin/bash
+# HEMS TACTICAL BRIDGE - MAC INITIALIZER
 
-# Move to the directory where this script is located
+# Move to the directory where the script is located
 cd "$(dirname "$0")"
 
 clear
-echo "###########################################################"
-echo "#             HEMS TACTICAL BRIDGE v5.2                   #"
-echo "#          INITIALIZING SECURE DATA LINK                  #"
-echo "###########################################################"
+echo "========================================"
+echo "    HEMS OPS-CENTER: TACTICAL BRIDGE    "
+echo "========================================"
 echo ""
 
-# Check if Node.js is installed
+# Check if Node is installed
 if ! command -v node &> /dev/null
 then
-    echo "[ERROR] Node.js is not installed!"
-    echo "Please download and install it from: https://nodejs.org/"
+    echo "[ERROR] Node.js is not installed."
+    echo "Please download and install it from: https://nodejs.org"
+    echo ""
+    read -p "Press any key to exit..."
     exit
 fi
 
-# Install dependencies if node_modules is missing
+# Install dependencies if node_modules doesn't exist
 if [ ! -d "node_modules" ]; then
-    echo "[1/2] First time setup: Installing tactical protocols..."
-    npm install --quiet
+    echo "[INIT] Installing local components..."
+    npm install express cors
 fi
 
-# Open the HUD in the default browser
-echo "[2/2] Launching Tactical Bridge..."
-sleep 2
-open http://localhost:8080
-
-# Start the server
+echo "[STARTING] Initializing server..."
 node server.js
