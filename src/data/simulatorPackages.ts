@@ -18,14 +18,14 @@ export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'xplane-uplink',
         name: 'Step 1: Lua Uplink Script',
-        description: 'The "Data Pipe". This tiny script reads your aircraft position and sends it to the Bridge UI.',
+        description: 'The "Data Pipe". Compatible with X-Plane 11 and 12. This tiny script reads your aircraft position and sends it to the Bridge UI.',
         pluginType: 'FlyWithLua Script',
         downloads: [
             { version: 'Download Uplink (.lua)', url: '/downloads/hems-dispatch-xp.lua', isScript: true },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
-            'Requirement: FlyWithLua (X-Plane Plugin).',
+            'Requirement: FlyWithLua (X-Plane 11 or 12 version).',
             'Drag "hems-dispatch-xp.lua" into X-Plane/Resources/plugins/FlyWithLua/Scripts/.',
             'Restart X-Plane to initialize the pipe.',
         ],
@@ -33,7 +33,7 @@ export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'hems-dispatch-bridge',
         name: 'Step 2: Tactical Bridge UI',
-        description: 'The "Popup Window". This is the high-fidelity UI where you view maps, AI comms, and patient data.',
+        description: 'The "Popup Window". Optimized for Windows/Mac. This is the high-fidelity UI where you view maps, AI comms, and patient data.',
         pluginType: 'Standalone App',
         downloads: [
             { version: 'Download Bridge UI (.zip)', url: '/downloads/hems-dispatch.zip' },
@@ -49,7 +49,7 @@ export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'hems-web-client',
         name: 'Optional: In-Browser Tester',
-        description: 'No download needed. Test the system logic directly from this website.',
+        description: 'Simulator-independent. Test the system logic directly from this website.',
         pluginType: 'Web Component',
         downloads: [
             { version: 'Open Web Simulator', url: '/simulator-client' },
@@ -58,7 +58,7 @@ export const simulatorPackages: SimulatorPackage[] = [
         installationSteps: [
             'Click "Open Web Simulator" below.',
             'Enter your API Key to authenticate.',
-            'Use this to test Dispatch logic without opening X-Plane.',
+            'Use this to test Dispatch logic without opening any simulator.',
         ],
     },
 ];

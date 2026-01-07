@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { BookOpen, Terminal, Cpu, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Terminal, Cpu, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Separator } from '@/components/ui/separator';
 
@@ -7,10 +7,32 @@ const Documentation = () => {
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-5xl space-y-12">
       <PageHeader 
-        title="Tactical Integration Hub"
+        title="Technical Manual"
         description="Official technical protocols for the HEMS Tactical Bridge v5.2 Environment."
         icon={BookOpen}
       />
+
+      {/* Compatibility Matrix */}
+      <section className="space-y-6">
+        <div className="flex items-center space-x-3">
+            <ShieldCheck className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-black uppercase italic tracking-tight">System Compatibility</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-muted/50 border rounded-2xl text-center space-y-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground">X-Plane 11</p>
+                <p className="text-sm font-bold text-green-600 uppercase">Optimized</p>
+            </div>
+            <div className="p-4 bg-muted/50 border rounded-2xl text-center space-y-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground">X-Plane 12</p>
+                <p className="text-sm font-bold text-green-600 uppercase">Optimized</p>
+            </div>
+            <div className="p-4 bg-muted/50 border rounded-2xl text-center space-y-1 opacity-50">
+                <p className="text-[10px] font-black uppercase text-muted-foreground">MSFS 2024</p>
+                <p className="text-sm font-bold text-primary uppercase">In Beta</p>
+            </div>
+        </div>
+      </section>
 
       {/* Quick Start Checklist */}
       <section className="space-y-6">
@@ -38,6 +60,16 @@ const Documentation = () => {
         </div>
       </section>
 
+      <div className="bg-blue-500/10 border border-blue-600/30 p-6 rounded-2xl flex items-start space-x-4">
+          <AlertCircle className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+              <p className="text-sm font-black uppercase text-blue-600">Note for X-Plane 11 Pilots</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                  The HEMS v5.2 protocol uses standard DataRefs shared by both XP11 and XP12. No separate configuration is required. Ensure you are using the version of <strong>FlyWithLua</strong> specifically built for X-Plane 11 to avoid script initialization errors.
+              </p>
+          </div>
+      </div>
+
       <Separator />
 
       <section className="space-y-6">
@@ -51,7 +83,7 @@ const Documentation = () => {
             <div className="grid md:grid-cols-2 gap-6 not-prose mt-6">
                 <Card className="p-6 bg-muted/30 border-2 flex flex-col h-full">
                     <div className="flex items-center space-x-2 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cpu w-5 h-5 text-primary"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v4"/><path d="M12 16v-4"/><path d="M8 12h4"/><path d="M16 12h-4"/><path d="M12 2v-2"/><path d="M12 24v-2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M12 4h.01"/><path d="M12 20h.01"/><path d="M4 12h.01"/><path d="M20 12h.01"/></svg>
+                        <Cpu className="w-5 h-5 text-primary" />
                         <h4 className="font-black text-sm uppercase">Tactical Bridge (Desktop)</h4>
                     </div>
                     <p className="text-[10px] text-muted-foreground flex-grow">
@@ -60,7 +92,7 @@ const Documentation = () => {
                 </Card>
                 <Card className="p-6 bg-muted/30 border-2 flex flex-col h-full">
                     <div className="flex items-center space-x-2 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tablet w-5 h-5 text-primary"><rect width="18" height="22" x="3" y="1" rx="2" ry="2"/><line x1="12" x2="12" y1="17" y2="17"/></svg>
+                        <Terminal className="w-5 h-5 text-primary" />
                         <h4 className="font-black text-sm uppercase">Cockpit EFB (Tablet)</h4>
                     </div>
                     <p className="text-[10px] text-muted-foreground flex-grow">
@@ -75,7 +107,7 @@ const Documentation = () => {
             <h2 className="text-3xl font-black italic uppercase tracking-tight border-b-2 border-primary/20 pb-2">Launching the System</h2>
             <ol className="space-y-4">
               <li>
-                  <strong>Start X-Plane:</strong> Ensure FlyWithLua is active and your script is loaded.
+                  <strong>Start Simulator:</strong> Ensure your aircraft is on the ramp and FlyWithLua script is active.
               </li>
               <li>
                   <strong>Open the Bridge:</strong> Run the launcher file in your desktop Bridge folder.
