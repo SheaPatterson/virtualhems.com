@@ -22,6 +22,16 @@ function generateTacticalResponse(mission: any, msg: string): string {
     const dest = mission?.destination?.name?.toUpperCase() || "THE FACILITY";
     const pickup = mission?.pickup?.name?.toUpperCase() || "THE SCENE";
 
+    // --- Mock Data for Richer Responses ---
+    const mockWeather = {
+        VFR: "VFR conditions, visibility 10 miles, winds 270 at 8 knots.",
+        MVFR: "Marginal VFR reported in the sector. Visibility 3 miles in haze. Proceed with caution.",
+        IFR: "IFR conditions. Ceiling 500 feet, visibility 1 mile in fog. Ground stop advised.",
+    };
+    const currentWinds = "270 at 8 knots";
+    const currentTraffic = "One fixed-wing aircraft reported 10 miles north, altitude 3,000 feet.";
+    const currentWeather = mockWeather.VFR; // Default to VFR
+
     // 1. EMERGENCY PROTOCOLS (Highest Priority)
     if (input.includes("MAYDAY") || input.includes("EMERGENCY") || input.includes("ENGINE FAILURE") || input.includes("FIRE")) {
         return `[ALERT] ${callsign}, DISPATCH COPIES MAYDAY. ALL STATIONS STANDBY. ADVISE POSITION, SOULS ON BOARD, AND NATURE OF EMERGENCY. EMERGENCY SERVICES IN THE SECTOR NOTIFIED.`;
@@ -30,60 +40,77 @@ function generateTacticalResponse(mission: any, msg: string): string {
     // 2. LZ RECON & FACILITY DATA
     if (input.includes("LZ") || input.includes("BRIEFING") || input.includes("RECON")) {
         if (phase.includes("Pickup")) {
-            return `${callsign}, GROUND EMS REPORTS SCENE LZ IS CLEAR. WINDS CALM. WATCH FOR POWER LINES ON THE WESTERN APPROACH NEAR THE INTERSECTION.`;
+            return `${callsign}, AFFIRMATIVE. GROUND EMS REPORTS SCENE LZ IS CLEAR. WINDS ARE ${currentWinds}. WATCH FOR POWER LINES ON THE WESTERN APPROACH NEAR THE INTERSECTION.`;
         }
-        return `${callsign}, ${dest} REPORTS PAD IS SECURE. BE ADVISED OF ROOFTOP TURBULENCE REPORTED BY PREVIOUS INBOUND UNIT.`;
+        return `${callsign}, ${dest} REPORTS PAD IS SECURE. BE ADVISED OF ROOFTOP TURBULENCE REPORTED BY PREVIOUS INBOUND UNIT. TRAUMA TEAM IS STANDING BY.`;
     }
 
     // 3. Standard Requests (Weather, Fuel, Nav)
     if (input.includes("WEATHER") || input.includes("METAR")) {
-        return `${callsign}, REGIONAL METAR FOR SECTOR 4 INDICATES VFR CONDITIONS. CEILING UNLIMITED. ADVISE IF YOU REQUIRE LOCAL ALTIMETER SETTING.`;
+        return `${callsign}, REGIONAL WEATHER CHECK: ${currentWeather}. ALTIMETER 29.92.`;
     }
     if (input.includes("FUEL") || input.includes("ENDURANCE")) {
         const fuel = mission?.tracking?.fuelRemainingLbs || 0;
-        return `${callsign}, DISPATCH SHOWS ${fuel} LBS REMAINING. ENSURE 20-MINUTE RESERVE FOR RE-ROUTE TO SECONDARY TRAUMA HUB IF REQUIRED.`;
+        const burnRate = mission?.helicopter?.fuelBurnRateLbHr || 450;
+        const enduranceMinutes = Math.floor((fuel / burnRate) * 60);
+        return `${callsign}, DISPATCH SHOWS ${fuel} LBS REMAINING. ESTIMATED ENDURANCE IS ${enduranceMinutes} MINUTES. CONFIRM RESERVE FUEL STATUS.`;
+    }
+    if (input.includes("TRAFFIC")) {
+        return `${callsign}, NEGATIVE CONFLICTING TRAFFIC REPORTED. ${currentTraffic}.`;
     }
 
     // 4. Phase-Specific Tactical Logic
     switch (phase) {
         case 'Dispatch':
-            if (input.includes("LIFTING") || input.includes("DEPARTING")) {
-                return `ROGER ${callsign}. CLOCK IS RUNNING. CLEARED DIRECT TO ${pickup}. SQUAWK 4200. REPORT ESTABLISHED ENROUTE.`;
+            if (input.includes("LIFTING") || input.includes("DEPARTING") || input.includes("AIRBORNE")) {
+                return `ROGER ${callsign}. CLOCK IS RUNNING. CLEARED DIRECT TO ${pickup}. SQUAWK 4200. REPORT ESTABLISHED ENROUTE. WINDS ARE ${currentWinds}.`;
             }
-            return `${callsign}, MISSION DATA UPLINKED. ADVISE WHEN READY FOR LIFT.`;
+            return `${callsign}, MISSION DATA UPLINKED. ADVISE WHEN READY FOR LIFT. CONFIRM CREW AND PATIENT MANIFEST IS COMPLETE.`;
 
         case 'Enroute Pickup':
             if (input.includes("ON SCENE") || input.includes("LANDED")) {
-                return `COPY ${callsign}. MARKS YOU ON THE DECK AT ${pickup}. ADVISE IF HOT LOAD OR COLD LOAD IS ANTICIPATED.`;
+                return `COPY ${callsign}. MARKS YOU ON THE DECK AT ${pickup}. ADVISE IF HOT LOAD OR COLD LOAD IS ANTICIPATED. PROCEED WITH PATIENT STABILIZATION.`;
             }
-            return `${callsign}, DISPATCH COPIES. CONTINUE TO ${pickup}. MONITOR GROUND FREQ 123.025 FOR SCENE COORDINATION.`;
+            // Proactive check
+            if (input.includes("PROGRESS") || input.includes("STATUS")) {
+                return `${callsign}, DISPATCH COPIES. CONTINUE TO ${pickup}. EXPECT ARRIVAL IN APPROXIMATELY 5 MINUTES.`;
+            }
+            return `DISPATCH STANDING BY, ${callsign}. CONTINUE ENROUTE TO ${pickup}.`;
 
         case 'At Scene/Transfer':
-            if (input.includes("LIFTING") || input.includes("PATIENT ON BOARD")) {
-                return `ROGER ${callsign}, PATIENT SECURED. CLEARED DIRECT TO ${dest}. REPORT 5 MILES OUT FROM FACILITY.`;
+            if (input.includes("LIFTING") || input.includes("PATIENT ON BOARD") || input.includes("DEPARTING")) {
+                return `ROGER ${callsign}, PATIENT SECURED. CLEARED DIRECT TO ${dest}. REPORT 5 MILES OUT FROM FACILITY. EXPEDITE AS REQUIRED.`;
             }
-            return `${callsign}, DISPATCH STANDING BY FOR DEPARTURE CALL.`;
+            return `${callsign}, DISPATCH STANDING BY FOR DEPARTURE CALL. CONFIRM PATIENT STABILIZATION COMPLETE.`;
 
         case 'Enroute Dropoff':
-            if (input.includes("ON FINAL") || input.includes("APPROACHING")) {
-                return `COPY ${callsign}. ${dest} TRAUMA TEAM IS BRIEFED AND STANDING BY ON THE PAD.`;
+            if (input.includes("ON FINAL") || input.includes("APPROACHING") || input.includes("VISUAL")) {
+                return `COPY ${callsign}. ${dest} TRAUMA TEAM IS BRIEFED AND STANDING BY ON THE PAD. REPORT VISUAL ON THE FACILITY.`;
             }
-            return `${callsign}, DISPATCH COPIES. EXPEDITE AS REQUIRED. WEATHER REMAINS VFR.`;
+            // Proactive check
+            if (input.includes("PROGRESS") || input.includes("STATUS")) {
+                return `${callsign}, DISPATCH COPIES. CONTINUE TO ${dest}. EXPECT ARRIVAL IN APPROXIMATELY 3 MINUTES.`;
+            }
+            return `DISPATCH STANDING BY, ${callsign}. CONTINUE ENROUTE TO ${dest}.`;
 
         case 'At Hospital':
             if (input.includes("HANDOFF COMPLETE") || input.includes("RETURNING")) {
-                return `ROGER ${callsign}. MISSION LOGGED AS CLINICALLY COMPLETE. YOU ARE CLEARED TO RETURN TO BASE.`;
+                return `ROGER ${callsign}. MISSION LOGGED AS CLINICALLY COMPLETE. YOU ARE CLEARED TO RETURN TO BASE. SQUAWK VFR.`;
             }
-            return `${callsign}, DISPATCH STANDING BY FOR SECURE DEPARTURE FROM ${dest}.`;
+            return `${callsign}, DISPATCH STANDING BY FOR SECURE DEPARTURE FROM ${dest}. CONFIRM PATIENT HANDOFF PROTOCOL COMPLETE.`;
 
         case 'Returning to Base':
-            if (input.includes("ON THE GROUND") || input.includes("SHUTTING DOWN")) {
-                return `COPY ${callsign}. WELCOME HOME. DISPATCH LOGGING SORTIE AS COMPLETE. SECURE ALL TELEMETRY.`;
+            if (input.includes("ON THE GROUND") || input.includes("SHUTTING DOWN") || input.includes("SECURE")) {
+                return `AFFIRMATIVE ${callsign}. WELCOME HOME. DISPATCH LOGGING SORTIE AS COMPLETE. SECURE ALL TELEMETRY.`;
             }
-            return `${callsign}, DISPATCH COPIES. REPORT SECURE AT BASE.`;
+            return `${callsign}, DISPATCH COPIES. CONTINUE TO BASE. REPORT 5 MILES OUT.`;
+            
+        case 'Complete':
+            return `${callsign}, MISSION IS ARCHIVED. NO FURTHER ACTION REQUIRED.`;
     }
 
-    return `DISPATCH COPIES, ${callsign}. STANDING BY ON THIS FREQUENCY.`;
+    // 5. Default/Fallback Response (More professional)
+    return `DISPATCH COPIES, ${callsign}. PLEASE REPEAT YOUR REQUEST WITH CLARITY.`;
 }
 
 serve(async (req) => {
