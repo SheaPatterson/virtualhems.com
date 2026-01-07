@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Zap, Radio, Navigation, Terminal, Power, RefreshCw } from 'lucide-react';
+import { Loader2, Zap, Radio, Navigation, Terminal, Power, RefreshCw, Clock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSimulatorPlugin } from '@/hooks/useSimulatorPlugin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -117,21 +117,26 @@ const SimulatorPluginUI: React.FC = () => {
                                     key={m.missionId} 
                                     onClick={() => setSelectedMission(m)}
                                     className={cn(
-                                        "w-full text-left p-5 rounded-xl border-2 transition-all flex justify-between items-center",
+                                        "w-full text-left p-5 rounded-xl border-2 transition-all flex flex-col space-y-2",
                                         selectedMission?.missionId === m.missionId 
                                             ? "bg-[#00ff41]/10 border-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.1)] scale-[1.02]" 
                                             : "bg-black/40 border-[#00ff41]/10 hover:border-[#00ff41]/40"
                                     )}
                                 >
-                                    <div className="space-y-1">
+                                    <div className="flex justify-between items-center">
                                         <p className="text-sm font-black italic uppercase tracking-tight">{m.callsign}</p>
-                                        <div className="flex items-center space-x-2 text-[8px] opacity-50 font-bold uppercase">
-                                            <span>{m.mission_type}</span>
-                                            <span>//</span>
-                                            <span>ID: {m.missionId}</span>
-                                        </div>
+                                        <Badge className="bg-black text-[#00ff41] border-[#00ff41]/40 text-[8px] h-4 px-2">{m.mission_type}</Badge>
                                     </div>
-                                    <Zap className={cn("w-5 h-5", selectedMission?.missionId === m.missionId ? "animate-pulse" : "opacity-20")} />
+                                    <div className="flex items-center space-x-2 text-[9px] opacity-70 font-bold uppercase">
+                                        <Navigation className="w-3 h-3" />
+                                        <span className="truncate max-w-[100px]">{m.origin.name}</span>
+                                        <ArrowRight className="w-3 h-3" />
+                                        <span className="truncate max-w-[100px]">{m.destination.name}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-4 text-[8px] opacity-50 font-bold uppercase pt-1 border-t border-[#00ff41]/10 w-full">
+                                        <span className="flex items-center"><Clock className="w-2 h-2 mr-1" /> ETE: {m.tracking.timeEnrouteMinutes} MIN</span>
+                                        <span className="flex items-center"><Zap className="w-2 h-2 mr-1" /> ID: {m.missionId}</span>
+                                    </div>
                                 </button>
                             ))
                         )}
