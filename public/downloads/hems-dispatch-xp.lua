@@ -1,13 +1,13 @@
--- HEMS TACTICAL UPLINK v5.2
+-- HEMS TACTICAL UPLINK v5.3 (No-SSL Edition)
 -- Requirement: FlyWithLua
 -- Location: X-Plane/Resources/plugins/FlyWithLua/Scripts/
 
-local http = require("socket.http")
-local ltn12 = require("ltn12")
+local socket = require("socket")
 
 -- CONFIGURATION
-local BRIDGE_URL = "http://localhost:8080/telemetry"
-local UPDATE_INTERVAL = 1.0 -- Seconds between packets
+local HOST = "127.0.0.1"
+local PORT = 8080
+local UPDATE_INTERVAL = 1.5 -- Seconds between packets
 local last_run = 0
 
 -- DATAREFS
@@ -23,34 +23,28 @@ function send_hems_telemetry()
     if now - last_run < UPDATE_INTERVAL then return end
     last_run = now
 
-    -- 1. Gather Data (with unit conversions)
-    local data = {
-        latitude = lat,
-        longitude = lon,
-        altitudeFt = alt_msl * 3.28084,
-        groundSpeedKts = gs_ms * 1.94384,
-        headingDeg = hdg_true,
-        fuelRemainingLbs = fuel_kg * 2.20462
-    }
-
-    -- 2. Construct JSON String
-    local json_payload = string.format(
+    -- 1. Construct JSON
+    local payload = string.format(
         '{"latitude":%f,"longitude":%f,"altitudeFt":%d,"groundSpeedKts":%d,"headingDeg":%d,"fuelRemainingLbs":%d}',
-        data.latitude, data.longitude, data.altitudeFt, data.groundSpeedKts, data.headingDeg, data.fuelRemainingLbs
+        lat, lon, math.floor(alt_msl * 3.28084), math.floor(gs_ms * 1.94384), math.floor(hdg_true), math.floor(fuel_kg * 2.20462)
     )
 
-    -- 3. POST to Local Bridge
-    local response_body = {}
-    local res, code, response_headers = http.request({
-        url = BRIDGE_URL,
-        method = "POST",
-        headers = {
-            ["Content-Type"] = "application/json",
-            ["Content-Length"] = #json_payload
-        },
-        source = ltn12.source.string(json_payload),
-        sink = ltn12.sink.table(response_body)
-    })
+    -- 2. Open Raw TCP Socket (Bypasses SSL requirement)
+    local tcp = socket.tcp()
+    tcp:settimeout(0.1) -- Don't freeze X-Plane if bridge is closed
+    
+    if tcp:connect(HOST, PORT) then
+        local http_request = 
+            "POST /telemetry HTTP/1.1\r\n" ..
+            "Host: " .. HOST .. "\r\n" ..
+            "Content-Type: application/json\r\n" ..
+            "Content-Length: " .. #payload .. "\r\n" ..
+            "Connection: close\r\n\r\n" ..
+            payload
+        
+        tcp:send(http_request)
+        tcp:close()
+    end
 end
 
 do_often("send_hems_telemetry()")
