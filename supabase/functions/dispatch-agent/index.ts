@@ -8,11 +8,9 @@ const corsHeaders = {
 };
 
 /**
- * HEMS DISPATCH AGENT v2 - SYSTEM INSTRUCTIONS:
- * 1. Role: Experienced HEMS dispatcher with deep knowledge of Western PA airspace.
- * 2. Tone: Professional, clear, concise, safety-focused. Use standard aviation phraseology.
- * 3. Context: Be aware of the mission phase. Provide relevant, phase-specific information.
- * 4. Proactive: Offer relevant data (weather, traffic) without being explicitly asked if contextually appropriate.
+ * HEMS TACTICAL AGENT v2.5
+ * Identity: Regional Dispatcher (Sector 4)
+ * Persona: Professional, clipped, safety-oriented. Uses military-standard alphabet and flight jargon.
  */
 
 function generateTacticalResponse(mission: any, msg: string): string {
@@ -22,95 +20,50 @@ function generateTacticalResponse(mission: any, msg: string): string {
     const dest = mission?.destination?.name?.toUpperCase() || "THE FACILITY";
     const pickup = mission?.pickup?.name?.toUpperCase() || "THE SCENE";
 
-    // --- Mock Data for Richer Responses ---
-    const mockWeather = {
-        VFR: "VFR conditions, visibility 10 miles, winds 270 at 8 knots.",
-        MVFR: "Marginal VFR reported in the sector. Visibility 3 miles in haze. Proceed with caution.",
-        IFR: "IFR conditions. Ceiling 500 feet, visibility 1 mile in fog. Ground stop advised.",
-    };
-    const currentWinds = "270 at 8 knots";
-    const currentTraffic = "One fixed-wing aircraft reported 10 miles north, altitude 3,000 feet.";
-    const currentWeather = mockWeather.VFR; // Default to VFR
-
-    // 1. EMERGENCY PROTOCOLS (Highest Priority)
-    if (input.includes("MAYDAY") || input.includes("EMERGENCY") || input.includes("ENGINE FAILURE") || input.includes("FIRE")) {
-        return `[ALERT] ${callsign}, DISPATCH COPIES MAYDAY. ALL STATIONS STANDBY. ADVISE POSITION, SOULS ON BOARD, AND NATURE OF EMERGENCY. EMERGENCY SERVICES IN THE SECTOR NOTIFIED.`;
+    // 1. SYSTEM EVENT TRIGGERS (Automated calls from simulator)
+    if (input.includes("EVENT_WAYPOINT_REACHED")) {
+        const wpName = input.split(':')[1] || "NEXT FIX";
+        if (phase === 'Enroute Pickup') return `${callsign}, DISPATCH COPIES REACHED ${wpName}. RADAR SHOWS YOU 5 MILES FROM ${pickup}. ADVISE ON SCENE.`;
+        if (phase === 'Enroute Dropoff') return `${callsign}, COPIES ${wpName}. ${dest} CENTER IS ALERTED. TRAUMA TEAM STANDING BY ON FREQUENCY 124.0.`;
+        return `${callsign}, DISPATCH COPIES ${wpName}. MAINTAIN CURRENT HEADING.`;
     }
 
-    // 2. LZ RECON & FACILITY DATA
-    if (input.includes("LZ") || input.includes("BRIEFING") || input.includes("RECON")) {
-        if (phase.includes("Pickup")) {
-            return `${callsign}, AFFIRMATIVE. GROUND EMS REPORTS SCENE LZ IS CLEAR. WINDS ARE ${currentWinds}. WATCH FOR POWER LINES ON THE WESTERN APPROACH NEAR THE INTERSECTION.`;
-        }
-        return `${callsign}, ${dest} REPORTS PAD IS SECURE. BE ADVISED OF ROOFTOP TURBULENCE REPORTED BY PREVIOUS INBOUND UNIT. TRAUMA TEAM IS STANDING BY.`;
+    if (input.includes("EVENT_LOW_FUEL")) {
+        return `[URGENT] ${callsign}, DISPATCH NOTING LOW FUEL STATE. ADVISE STATUS AND NEAREST ALTERNATE IF REQUIRED. SAFETY PROTOCOL 4-B IN EFFECT.`;
     }
 
-    // 3. Standard Requests (Weather, Fuel, Nav)
-    if (input.includes("WEATHER") || input.includes("METAR")) {
-        return `${callsign}, REGIONAL WEATHER CHECK: ${currentWeather}. ALTIMETER 29.92.`;
-    }
-    if (input.includes("FUEL") || input.includes("ENDURANCE")) {
-        const fuel = mission?.tracking?.fuelRemainingLbs || 0;
-        const burnRate = mission?.helicopter?.fuelBurnRateLbHr || 450;
-        const enduranceMinutes = Math.floor((fuel / burnRate) * 60);
-        return `${callsign}, DISPATCH SHOWS ${fuel} LBS REMAINING. ESTIMATED ENDURANCE IS ${enduranceMinutes} MINUTES. CONFIRM RESERVE FUEL STATUS.`;
-    }
-    if (input.includes("TRAFFIC")) {
-        return `${callsign}, NEGATIVE CONFLICTING TRAFFIC REPORTED. ${currentTraffic}.`;
+    // 2. EMERGENCY OVERRIDE
+    if (input.includes("MAYDAY") || input.includes("PAN-PAN") || input.includes("ENGINE FAILURE")) {
+        return `[CRITICAL] ${callsign}, DISPATCH COPIES MAYDAY. ALL UNITS STANDBY. ${callsign}, ADVISE POSITION, SOULS, AND NATURE OF EMERGENCY. SAR IS BEING TASKED.`;
     }
 
-    // 4. Phase-Specific Tactical Logic
+    // 3. PHASE-SPECIFIC TACTICAL RADIO
     switch (phase) {
         case 'Dispatch':
-            if (input.includes("LIFTING") || input.includes("DEPARTING") || input.includes("AIRBORNE")) {
-                return `ROGER ${callsign}. CLOCK IS RUNNING. CLEARED DIRECT TO ${pickup}. SQUAWK 4200. REPORT ESTABLISHED ENROUTE. WINDS ARE ${currentWinds}.`;
+            if (input.includes("LIFTING") || input.includes("AIRBORNE")) {
+                return `ROGER ${callsign}. MARKS YOU OFF THE DECK AT ${mission.origin.name.toUpperCase()} AT ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}Z. CLEARED DIRECT ${pickup}. WINDS 240 AT 12. SQUAWK 4220.`;
             }
-            return `${callsign}, MISSION DATA UPLINKED. ADVISE WHEN READY FOR LIFT. CONFIRM CREW AND PATIENT MANIFEST IS COMPLETE.`;
-
-        case 'Enroute Pickup':
-            if (input.includes("ON SCENE") || input.includes("LANDED")) {
-                return `COPY ${callsign}. MARKS YOU ON THE DECK AT ${pickup}. ADVISE IF HOT LOAD OR COLD LOAD IS ANTICIPATED. PROCEED WITH PATIENT STABILIZATION.`;
-            }
-            // Proactive check
-            if (input.includes("PROGRESS") || input.includes("STATUS")) {
-                return `${callsign}, DISPATCH COPIES. CONTINUE TO ${pickup}. EXPECT ARRIVAL IN APPROXIMATELY 5 MINUTES.`;
-            }
-            return `DISPATCH STANDING BY, ${callsign}. CONTINUE ENROUTE TO ${pickup}.`;
+            return `${callsign}, DATA UPLINK VERIFIED. MISSION PROFILE: ${mission.mission_type.toUpperCase()}. ADVISE WHEN READY FOR LIFT.`;
 
         case 'At Scene/Transfer':
-            if (input.includes("LIFTING") || input.includes("PATIENT ON BOARD") || input.includes("DEPARTING")) {
-                return `ROGER ${callsign}, PATIENT SECURED. CLEARED DIRECT TO ${dest}. REPORT 5 MILES OUT FROM FACILITY. EXPEDITE AS REQUIRED.`;
+            if (input.includes("PATIENT LOADED") || input.includes("LIFTING")) {
+                return `COPY ${callsign}. CLOCK STARTING ON CLINICAL TRANSPORT. CLEARED DIRECT ${dest}. EXPEDITE AS REQUIRED. REPORT 5 MILES OUT.`;
             }
-            return `${callsign}, DISPATCH STANDING BY FOR DEPARTURE CALL. CONFIRM PATIENT STABILIZATION COMPLETE.`;
-
-        case 'Enroute Dropoff':
-            if (input.includes("ON FINAL") || input.includes("APPROACHING") || input.includes("VISUAL")) {
-                return `COPY ${callsign}. ${dest} TRAUMA TEAM IS BRIEFED AND STANDING BY ON THE PAD. REPORT VISUAL ON THE FACILITY.`;
-            }
-            // Proactive check
-            if (input.includes("PROGRESS") || input.includes("STATUS")) {
-                return `${callsign}, DISPATCH COPIES. CONTINUE TO ${dest}. EXPECT ARRIVAL IN APPROXIMATELY 3 MINUTES.`;
-            }
-            return `DISPATCH STANDING BY, ${callsign}. CONTINUE ENROUTE TO ${dest}.`;
+            return `${callsign}, DISPATCH COPIES. STANDING BY FOR DEPARTURE CALL FROM ${pickup}. GROUND EMS HAS BEEN DISMISSED.`;
 
         case 'At Hospital':
-            if (input.includes("HANDOFF COMPLETE") || input.includes("RETURNING")) {
-                return `ROGER ${callsign}. MISSION LOGGED AS CLINICALLY COMPLETE. YOU ARE CLEARED TO RETURN TO BASE. SQUAWK VFR.`;
+            if (input.includes("OFF THE DECK") || input.includes("RETURNING")) {
+                return `AFFIRMATIVE ${callsign}. CLINICAL MISSION LOGGED. CLEARED RETURN TO BASE. SQUAWK VFR. REPORT ON THE GROUND.`;
             }
-            return `${callsign}, DISPATCH STANDING BY FOR SECURE DEPARTURE FROM ${dest}. CONFIRM PATIENT HANDOFF PROTOCOL COMPLETE.`;
+            return `${callsign}, DISPATCH COPIES HANDOFF. STANDING BY FOR DEPARTURE. GOOD WORK ON THE LOAD.`;
 
-        case 'Returning to Base':
-            if (input.includes("ON THE GROUND") || input.includes("SHUTTING DOWN") || input.includes("SECURE")) {
-                return `AFFIRMATIVE ${callsign}. WELCOME HOME. DISPATCH LOGGING SORTIE AS COMPLETE. SECURE ALL TELEMETRY.`;
-            }
-            return `${callsign}, DISPATCH COPIES. CONTINUE TO BASE. REPORT 5 MILES OUT.`;
+        default:
+            // Dynamic interaction based on key terms
+            if (input.includes("WEATHER") || input.includes("METAR")) return `${callsign}, REGIONAL METAR SHOWS VFR. VISIBILITY 10SM. ALTIMETER 29.98.`;
+            if (input.includes("RECON") || input.includes("LZ")) return `${callsign}, ${pickup} LZ IS VERIFIED. WATCH FOR LIGHTING AT THE NORTHWEST CORNER. WINDS FAVORING NORTHERN APPROACH.`;
             
-        case 'Complete':
-            return `${callsign}, MISSION IS ARCHIVED. NO FURTHER ACTION REQUIRED.`;
+            return `DISPATCH COPIES, ${callsign}. CONTINUE PER MISSION PROTOCOL.`;
     }
-
-    // 5. Default/Fallback Response (More professional)
-    return `DISPATCH COPIES, ${callsign}. PLEASE REPEAT YOUR REQUEST WITH CLARITY.`;
 }
 
 serve(async (req) => {
@@ -127,11 +80,7 @@ serve(async (req) => {
         const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
         if (user) userId = user.id;
     } else if (pluginApiKey) {
-        const { data: mapping } = await supabaseAdmin
-            .from('user_api_keys')
-            .select('user_id')
-            .eq('api_key', pluginApiKey)
-            .single();
+        const { data: mapping } = await supabaseAdmin.from('user_api_keys').select('user_id').eq('api_key', pluginApiKey).single();
         if (mapping) userId = mapping.user_id;
     }
 
@@ -139,17 +88,18 @@ serve(async (req) => {
 
     const { mission_id, crew_message } = await req.json();
 
-    const { data: mission } = await supabaseAdmin
-        .from('missions')
-        .select('*')
-        .eq('mission_id', mission_id)
-        .single();
+    const { data: mission } = await supabaseAdmin.from('missions').select('*').eq('mission_id', mission_id).single();
 
     const responseText = generateTacticalResponse(mission, crew_message);
 
-    // Persistence
+    // Filter out "Internal Event" messages from the public visible radio log
+    if (!crew_message.startsWith('EVENT_')) {
+        await supabaseAdmin.from('mission_radio_logs').insert([
+            { mission_id, sender: 'Crew', message: crew_message, user_id: userId, callsign: mission?.callsign || 'UNIT' }
+        ]);
+    }
+
     await supabaseAdmin.from('mission_radio_logs').insert([
-        { mission_id, sender: 'Crew', message: crew_message, user_id: userId, callsign: mission?.callsign || 'UNIT' },
         { mission_id, sender: 'Dispatcher', message: responseText, user_id: userId, callsign: 'DISPATCH' }
     ]);
 

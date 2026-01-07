@@ -5,6 +5,7 @@ import { MissionReport } from '@/data/hemsData';
 import { initXPlaneConnection, getTelemetry } from '@/plugins/xplane/xplaneWebApi';
 import { determineFlightPhase } from '@/plugins/xplane/utils';
 import { sendTelemetryUpdate } from '@/integrations/simulator/api';
+import { sendCrewMessageToAgent, fetchDispatchAudio } from '@/integrations/dispatch/api';
 
 const TELEMETRY_INTERVAL_MS = 4000;
 
@@ -29,12 +30,19 @@ export const useSimulatorPlugin = () => {
         setConsoleOutput(prev => [...prev.slice(-50), `[${timestamp}] ${msg}`]);
     }, []);
 
-    const handleAuth = () => {
-        if (apiKey.length < 10) {
-            toast.error("Invalid API Key format.");
-            addToConsole("CRITICAL_ERR: AUTH_DENIED - INVALID TOKEN");
-            return;
+    const triggerProactiveCall = async (missionId: string, eventCode: string) => {
+        const response = await sendCrewMessageToAgent(missionId, eventCode);
+        if (response) {
+            const audioUrl = await fetchDispatchAudio(response.responseText);
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
         }
+    };
+
+    const handleAuth = () => {
+        if (apiKey.length < 10) return;
         localStorage.setItem('hems_api_key', apiKey);
         setIsAuthenticated(true);
         addToConsole("LINK_ESTABLISHED: HEMS_GATEWAY_v4.2");
@@ -49,35 +57,25 @@ export const useSimulatorPlugin = () => {
         setIsConnecting(false);
         if (success) {
             addToConsole("UPLINK_ESTABLISHED: X-PLANE_WEB_API");
-            toast.success(`Connection to X-Plane at ${host}:${port} successful.`);
-        } else {
-            addToConsole("ERR: HANDSHAKE_FAILED");
-            toast.error("Connection to X-Plane failed. Check plugin status.");
         }
     };
 
     const loadMissions = useCallback(async () => {
         if (!isAuthenticated) return;
         setIsLoadingMissions(true);
-        addToConsole("POLLING_DISPATCH_CENTER...");
         const { data } = await supabase.from('missions').select('*').eq('status', 'active').order('created_at', { ascending: false });
         if (data) {
-            const mappedMissions = data.map((m: any) => ({ ...m, missionId: m.mission_id, callsign: m.callsign || 'HEMS UNIT' })) as any;
+            const mappedMissions = data.map((m: any) => ({ ...m, missionId: m.mission_id })) as any;
             setMissions(mappedMissions);
-            addToConsole(`RX_DATA: ${data.length} ACTIVE_MISSIONS`);
-            if (data.length > 0 && !selectedMission) {
-                setSelectedMission(mappedMissions[0]);
-                addToConsole(`AUTO_LOCK: ${mappedMissions[0].missionId}`);
-            }
+            if (mappedMissions.length > 0 && !selectedMission) setSelectedMission(mappedMissions[0]);
         }
         setIsLoadingMissions(false);
-    }, [isAuthenticated, selectedMission, addToConsole]);
+    }, [isAuthenticated, selectedMission]);
 
     const startSync = () => {
         if (!selectedMission || !isConnected || isSyncing) return;
         setIsSyncing(true);
         addToConsole("TELEMETRY_STREAM: ENGAGED");
-        toast.info("Live telemetry sync started.");
 
         lastReachedWaypointIndex.current = 0;
 
@@ -85,6 +83,14 @@ export const useSimulatorPlugin = () => {
             try {
                 const telemetry = await getTelemetry();
                 const { newIndex, phase } = determineFlightPhase(telemetry.latitude, telemetry.longitude, selectedMission.waypoints, lastReachedWaypointIndex.current);
+                
+                // EVENT: Waypoint Reached
+                if (newIndex > lastReachedWaypointIndex.current) {
+                    const wp = selectedMission.waypoints[newIndex];
+                    addToConsole(`AUTO_DISPATCH: Reached ${wp.name}`);
+                    triggerProactiveCall(selectedMission.missionId, `EVENT_WAYPOINT_REACHED:${wp.name}`);
+                }
+                
                 lastReachedWaypointIndex.current = newIndex;
 
                 const payload = {
@@ -97,25 +103,19 @@ export const useSimulatorPlugin = () => {
                 const success = await sendTelemetryUpdate(payload);
                 if (success) {
                     addToConsole(`TX_PACKET: ${phase} | ${telemetry.fuelRemainingLbs}lbs`);
-                    setSelectedMission(prev => prev ? { ...prev, tracking: { ...prev.tracking, ...payload } } : null);
-                    if (phase === 'Complete') stopSync();
-                } else {
-                    addToConsole("ERR: TELEMETRY_UPLINK_FAILED");
                 }
             } catch (e) {
-                addToConsole(`ERR: ${e instanceof Error ? e.message : 'Unknown telemetry error'}`);
                 stopSync();
             }
         };
 
-        telemetryInterval.current = setInterval(mainLoop, TELEMETRY_INTERVAL_MS) as unknown as number;
+        telemetryInterval.current = setInterval(mainLoop, TELEMETRY_INTERVAL_MS) as any;
     };
 
     const stopSync = () => {
         if (telemetryInterval.current) clearInterval(telemetryInterval.current);
         setIsSyncing(false);
         addToConsole("TELEMETRY_STREAM: DISENGAGED");
-        toast.info("Telemetry sync stopped.");
     };
 
     useEffect(() => {
