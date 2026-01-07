@@ -70,19 +70,7 @@ const Documentation = () => {
             </div>
           </div>
 
-          {/* Section 2: Audio Enhancement */}
-          <div>
-            <h3 className="text-2xl font-black italic uppercase tracking-tight border-b-2 border-primary/20 pb-2 mt-12">Audio Enhancement (TTS)</h3>
-            <p>
-              The Dispatch Agent now uses a high-quality Text-to-Speech (TTS) service architecture for realistic radio calls, replacing generic system voices. For the full radio effect, you need to provide a short audio file for static:
-            </p>
-            <ul className="list-disc list-inside ml-4 space-y-2">
-              <li><code className="font-mono">/public/audio/radio_static.mp3</code>: Place a short static/click sound here. This is used for the PTT click and release effect.</li>
-              <li><code className="font-mono">/public/audio/dispatch_response.mp3</code>: The server uses a placeholder URL pointing to this file to simulate the high-quality voice response. For a real deployment, you would integrate a service like ElevenLabs here.</li>
-            </ul>
-          </div>
-
-          {/* Section 3: Launching */}
+          {/* Section 2: Launching */}
           <div>
             <h2 className="text-3xl font-black italic uppercase tracking-tight border-b-2 border-primary/20 pb-2">Launching the System</h2>
             <ol className="space-y-4">
