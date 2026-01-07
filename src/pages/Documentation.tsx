@@ -67,22 +67,31 @@ const Documentation = () => {
               <h2 className="text-2xl font-black uppercase italic tracking-tight">macOS Execution Guide</h2>
           </div>
           <div className="space-y-4">
-              <div className="p-6 bg-muted/30 border-2 rounded-2xl space-y-4">
+              <div className="p-6 bg-muted/30 border-2 rounded-2xl space-y-6">
                   <div>
-                      <h4 className="font-bold text-sm mb-1 uppercase">1. Bypassing Gatekeeper</h4>
-                      <p className="text-xs text-muted-foreground">
-                          Because the Bridge is from an unidentified developer, macOS will block a standard double-click. 
-                          <strong> Right-click</strong> the <code className="font-mono">.command</code> file and select <strong>Open</strong>. In the resulting dialog, click <strong>Open</strong> again.
+                      <h4 className="font-bold text-sm mb-1 uppercase text-primary">Option A: The "Open Anyway" Button</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                          1. Double-click the <code className="font-mono">.command</code> file and let it fail.<br />
+                          2. Open <strong>System Settings</strong> (or Preferences) → <strong>Privacy & Security</strong>.<br />
+                          3. Scroll down to the "Security" section. You will see a message saying the file was blocked.<br />
+                          4. Click <strong>Open Anyway</strong> and enter your Mac password.
                       </p>
                   </div>
+                  
                   <Separator />
+
                   <div>
-                      <h4 className="font-bold text-sm mb-1 uppercase">2. Fix "Permission Denied"</h4>
-                      <p className="text-xs text-muted-foreground mb-3">
-                          If you see a terminal error saying you don't have permission, you must manually flag the file as executable:
+                      <h4 className="font-bold text-sm mb-1 uppercase text-primary">Option B: Remove Quarantine Flag (Terminal)</h4>
+                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                          If the system still refuses to open the file, you must manually strip the download security flag using Terminal:
                       </p>
-                      <div className="bg-black p-4 rounded-lg font-mono text-[10px] text-[#00ff41] border border-[#00ff41]/20">
-                          chmod +x LAUNCH_BRIDGE.command
+                      <div className="bg-black p-4 rounded-lg font-mono text-[10px] text-[#00ff41] border border-[#00ff41]/20 space-y-2">
+                          <p># 1. Navigate to the Bridge folder</p>
+                          <p>cd ~/Desktop/hems-dispatch</p>
+                          <p># 2. Strip the Apple quarantine flag</p>
+                          <p>xattr -d com.apple.quarantine LAUNCH_BRIDGE.command</p>
+                          <p># 3. Add execution permission</p>
+                          <p>chmod +x LAUNCH_BRIDGE.command</p>
                       </div>
                   </div>
               </div>
