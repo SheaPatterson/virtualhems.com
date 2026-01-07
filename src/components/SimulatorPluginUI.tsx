@@ -91,6 +91,7 @@ const SimulatorPluginUI: React.FC = () => {
 
     return (
         <div className="h-[700px] flex flex-col space-y-4 p-4 bg-zinc-950 border-4 border-zinc-800 rounded-[2rem] font-mono text-[#00ff41] shadow-2xl relative overflow-hidden">
+            {/* CRT Overlay Effect */}
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_4px,3px_100%] z-50 opacity-20" />
             
             <div className="flex justify-between items-center bg-black/40 p-4 rounded-2xl border border-[#00ff41]/20">
