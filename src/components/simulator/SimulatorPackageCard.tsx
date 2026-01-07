@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Code, ListOrdered, ExternalLink, Zap, PlayCircle, Download, ShieldCheck } from 'lucide-react';
+import { Code, ListOrdered, ExternalLink, Zap, PlayCircle, Download, ShieldCheck, FileCode } from 'lucide-react';
 import { SimulatorPackage } from '@/data/simulatorPackages';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -114,7 +114,7 @@ const SimulatorPackageCard: React.FC<SimulatorPackageCardProps> = ({ pkg, apiKey
                                     target={isExternalLink ? "_blank" : "_self"}
                                     rel={isExternalLink ? "noopener noreferrer" : ""}
                                 >
-                                    <Download className="w-4 h-4 mr-2" />
+                                    {download.isScript ? <FileCode className="w-4 h-4 mr-2" /> : <Download className="w-4 h-4 mr-2" />}
                                     {download.version}
                                 </a>
                             </Button>
