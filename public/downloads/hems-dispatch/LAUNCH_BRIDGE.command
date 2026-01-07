@@ -1,28 +1,46 @@
 #!/bin/bash
 
-# Ensure we are in the directory where the script is located
-cd "$(dirname "$0")"
+# Move to the script directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
 
+clear
 echo "========================================"
 echo "      HEMS Tactical Bridge Launcher     "
 echo "========================================"
-echo "Setting working directory to: $(pwd)"
+echo "Location: $DIR"
 
-# Check if node is installed
+# 1. Check for Node.js
 if ! command -v node &> /dev/null
 then
-    echo "ERROR: Node.js is not installed."
-    echo "Please download and install it from https://nodejs.org"
-    read -p "Press any key to exit..."
+    echo ""
+    echo "CRITICAL ERROR: Node.js is not installed."
+    echo "Please install it from https://nodejs.org"
+    echo "----------------------------------------"
+    read -p "Press Enter to exit..."
     exit
 fi
 
-# Check if dependencies exist
+# 2. Check for dependencies
 if [ ! -d "node_modules" ]; then
-    echo "[SETUP] Installing required dependencies..."
-    npm install
+    echo "[SYSTEM] First run detected. Installing dependencies..."
+    npm install --no-audit --no-fund
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to install dependencies. Check your internet connection."
+        read -p "Press Enter to exit..."
+        exit
+    fi
 fi
 
+# 3. Launch Server
+echo "[SUCCESS] Dependencies verified."
 echo "Starting HEMS Tactical Bridge..."
 echo "----------------------------------------"
+
 node server.js
+
+# 4. If the server crashes, keep window open
+echo ""
+echo "----------------------------------------"
+echo "Bridge server has stopped."
+read -p "Press Enter to close this window..."
