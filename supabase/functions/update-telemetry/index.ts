@@ -47,7 +47,34 @@ serve(async (req) => {
     const hdg = telemetryData.headingDeg ?? 0;
     const fuel = telemetryData.fuelRemainingLbs ?? 0;
 
-    // 1. Update Global Status
+    // 1. Fetch Active Mission (if any)
+    const { data: mission } = await supabaseAdmin
+      .from('missions')
+      .select('mission_id, destination, tracking, helicopter, patient_age, patient_gender, callsign')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // 2. Determine Callsign for Global Status
+    let callsign = 'UNIT';
+    if (mission?.callsign) {
+        callsign = mission.callsign;
+    } else {
+        // Fallback: Use profile name/initials for general tracking
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', userId)
+            .maybeSingle();
+        
+        if (profile?.first_name || profile?.last_name) {
+            callsign = `${profile.first_name || ''}${profile.last_name || ''}`.trim().toUpperCase() || 'UNIT';
+        }
+    }
+
+    // 3. Update Global Status
     await supabaseAdmin.from('live_pilot_status').upsert({
         user_id: userId,
         last_seen: new Date().toISOString(),
@@ -58,19 +85,10 @@ serve(async (req) => {
         heading_deg: hdg,
         fuel_remaining_lbs: fuel,
         phase: phase || 'Online',
-        callsign: body.callsign || 'UNIT'
+        callsign: callsign
     });
 
-    // 2. Fetch Active Mission
-    const { data: mission } = await supabaseAdmin
-      .from('missions')
-      .select('mission_id, destination, tracking, helicopter, patient_age, patient_gender')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
+    // 4. Update Active Mission Tracking Data
     if (mission) {
         await supabaseAdmin.from('missions').update({
             tracking: {
@@ -86,7 +104,7 @@ serve(async (req) => {
         }).eq('mission_id', mission.mission_id);
     }
 
-    // 3. Construct Enhanced Tactical Response for Lua
+    // 5. Construct Enhanced Tactical Response for Lua
     let resp = "ID:NONE|TO:STANDBY|PHASE:ONLINE|DIST:0|REM:0|PT:NONE";
     if (mission) {
         const dist = calculateDistance(lat, lon, mission.destination.latitude, mission.destination.longitude);
@@ -100,6 +118,7 @@ serve(async (req) => {
     return new Response(resp, { headers: { ...corsHeaders, 'Content-Type': 'text/plain' } });
 
   } catch (error) {
+    console.error("[update-telemetry] Error:", error.message);
     return new Response(`ERR:${error.message}`, { status: 500, headers: corsHeaders });
   }
 });
