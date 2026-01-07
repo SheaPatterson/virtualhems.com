@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEMS TACTICAL HUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,800;1,800&display=swap');
+        body { font-family: 'JetBrains+Mono', monospace; background: black; color: #00ff41; overflow: hidden; }
+        .crt::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none; }
+        .scanline { width: 100%; height: 100px; z-index: 3; background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 255, 65, 0.1) 50%, rgba(0, 0, 0, 0) 100%); opacity: 0.1; position: absolute; bottom: 100%; animation: scanline 10s linear infinite; }
+        @keyframes scanline { 0% { bottom: 100%; } 80% { bottom: 100%; } 100% { bottom: -100%; } }
+    </style>
+</head>
+<body class="crt p-8 h-screen flex flex-col space-y-6">
+    <div class="scanline"></div>
+
+    <header class="flex justify-between items-center border-b-2 border-[#00ff41]/30 pb-4">
+        <div>
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase">HEMS TACTICAL BRIDGE</h1>
+            <p class="text-[10px] opacity-60 tracking-[0.5em]">SYSTEM_VERSION_5.2.0_STABLE</p>
+        </div>
+        <div id="sim-status" class="px-4 py-2 border-2 border-red-500 text-red-500 font-black text-xs italic">
+            NO_SIM_LINK
+        </div>
+    </header>
+
+    <div class="grid grid-cols-3 gap-8 flex-grow items-center">
+        <div class="space-y-6">
+            <div class="p-6 bg-[#00ff41]/5 border-2 border-[#00ff41]/20 rounded-3xl">
+                <p class="text-[10px] opacity-40 uppercase mb-1">Altitude</p>
+                <p class="text-5xl font-black italic"><span id="alt">---</span> <span class="text-sm">FT</span></p>
+            </div>
+            <div class="p-6 bg-[#00ff41]/5 border-2 border-[#00ff41]/20 rounded-3xl">
+                <p class="text-[10px] opacity-40 uppercase mb-1">Ground Speed</p>
+                <p class="text-5xl font-black italic"><span id="spd">---</span> <span class="text-sm">KTS</span></p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center space-y-4">
+            <div class="w-64 h-64 border-4 border-[#00ff41]/20 rounded-full flex items-center justify-center relative">
+                <div id="compass" class="w-2 h-32 bg-orange-500 absolute rounded-full transition-transform duration-500"></div>
+                <div class="w-4 h-4 bg-white rounded-full z-10"></div>
+            </div>
+            <p class="text-xl font-black italic">HDG: <span id="hdg">---</span>&deg;</p>
+        </div>
+
+        <div class="space-y-6">
+            <div id="fuel-card" class="p-6 bg-[#00ff41]/5 border-2 border-[#00ff41]/20 rounded-3xl">
+                <p class="text-[10px] opacity-40 uppercase mb-1">Fuel State</p>
+                <p class="text-5xl font-black italic"><span id="fuel">---</span> <span class="text-sm">LB</span></p>
+            </div>
+            <div class="p-6 bg-[#00ff41]/5 border-2 border-[#00ff41]/20 rounded-3xl">
+                <p class="text-[10px] opacity-40 uppercase mb-1">Mission Clock</p>
+                <p class="text-5xl font-black italic">00:00 <span class="text-sm">MIN</span></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="flex justify-between text-[10px] opacity-40 border-t-2 border-[#00ff41]/10 pt-4">
+        <span>PACKET_ID: <span id="packet">0000000000000</span></span>
+        <span>LAT: <span id="lat">0.0000</span> | LON: <span id="lon">0.0000</span></span>
+    </footer>
+
+    <script>
+        async function updateHUD() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                const statusEl = document.getElementById('sim-status');
+                if (data.simConnected) {
+                    statusEl.innerText = "SIM_LINK_ACTIVE";
+                    statusEl.className = "px-4 py-2 border-2 border-[#00ff41] text-[#00ff41] font-black text-xs italic animate-pulse";
+                } else {
+                    statusEl.innerText = "AWAITING_DATA";
+                    statusEl.className = "px-4 py-2 border-2 border-red-500 text-red-500 font-black text-xs italic";
+                }
+
+                if (data.telemetry) {
+                    const t = data.telemetry;
+                    document.getElementById('alt').innerText = Math.round(t.altitudeFt);
+                    document.getElementById('spd').innerText = Math.round(t.groundSpeedKts);
+                    document.getElementById('hdg').innerText = Math.round(t.headingDeg);
+                    document.getElementById('fuel').innerText = Math.round(t.fuelRemainingLbs);
+                    document.getElementById('lat').innerText = t.latitude.toFixed(4);
+                    document.getElementById('lon').innerText = t.longitude.toFixed(4);
+                    document.getElementById('packet').innerText = t.timestamp;
+                    document.getElementById('compass').style.transform = `rotate(${t.headingDeg}deg)`;
+                    
+                    const fuelCard = document.getElementById('fuel-card');
+                    if (t.fuelRemainingLbs < 300) {
+                        fuelCard.className = "p-6 bg-red-500/20 border-2 border-red-500 rounded-3xl animate-pulse";
+                    } else {
+                        fuelCard.className = "p-6 bg-[#00ff41]/5 border-2 border-[#00ff41]/20 rounded-3xl";
+                    }
+                }
+            } catch (e) { console.error("API Link Failure"); }
+        }
+        setInterval(updateHUD, 1000);
+    </script>
+</body>
+</html>
