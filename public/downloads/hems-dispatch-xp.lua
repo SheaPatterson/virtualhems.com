@@ -1,39 +1,60 @@
 -- HEMS TACTICAL UPLINK v5.2
--- Place this in X-Plane 12/Resources/plugins/FlyWithLua/Scripts/
+-- Requirement: FlyWithLua
+-- Location: X-Plane/Resources/plugins/FlyWithLua/Scripts/
 
-local bridge_url = "http://localhost:8080/telemetry" -- Default Bridge Port
-local last_update = 0
-local update_rate = 2.0 -- 2Hz update for stability
+local http = require("socket.http")
+local ltn12 = require("ltn12")
 
--- DataRefs to monitor
-local dr_lat = dataref_table("sim/flightmodel/position/latitude")
-local dr_lon = dataref_table("sim/flightmodel/position/longitude")
-local dr_alt = dataref_table("sim/flightmodel/position/elevation")
-local dr_spd = dataref_table("sim/flightmodel/position/groundspeed")
-local dr_hdg = dataref_table("sim/flightmodel/position/true_psi")
-local dr_fuel = dataref_table("sim/flightmodel/weight/m_fuel_total")
+-- CONFIGURATION
+local BRIDGE_URL = "http://localhost:8080/telemetry"
+local UPDATE_INTERVAL = 1.0 -- Seconds between packets
+local last_run = 0
+
+-- DATAREFS
+dataref("alt_msl", "sim/flightmodel/position/elevation")
+dataref("gs_ms", "sim/flightmodel/position/groundspeed")
+dataref("hdg_true", "sim/flightmodel/position/true_psi")
+dataref("lat", "sim/flightmodel/position/latitude")
+dataref("lon", "sim/flightmodel/position/longitude")
+dataref("fuel_kg", "sim/flightmodel/weight/m_fuel_total")
 
 function send_hems_telemetry()
     local now = os.clock()
-    if now - last_update < update_rate then return end
-    last_update = now
+    if now - last_run < UPDATE_INTERVAL then return end
+    last_run = now
 
-    -- Construct JSON payload
-    local data = string.format(
+    -- 1. Gather Data (with unit conversions)
+    local data = {
+        latitude = lat,
+        longitude = lon,
+        altitudeFt = alt_msl * 3.28084,
+        groundSpeedKts = gs_ms * 1.94384,
+        headingDeg = hdg_true,
+        fuelRemainingLbs = fuel_kg * 2.20462
+    }
+
+    -- 2. Construct JSON String (Manual to avoid dependencies)
+    local json_payload = string.format(
         '{"latitude":%f,"longitude":%f,"altitudeFt":%d,"groundSpeedKts":%d,"headingDeg":%d,"fuelRemainingLbs":%d}',
-        dr_lat[0], 
-        dr_lon[0], 
-        dr_alt[0] * 3.28084, 
-        dr_spd[0] * 1.94384, 
-        dr_hdg[0], 
-        dr_fuel[0] * 2.20462
+        data.latitude, data.longitude, data.altitudeFt, data.groundSpeedKts, data.headingDeg, data.fuelRemainingLbs
     )
 
-    -- Non-blocking POST (requires FlyWithLua socket support)
-    -- If local bridge is not running, this fails silently
-    pcall(function()
-        http.post(bridge_url, data)
-    end)
+    -- 3. POST to Local Bridge
+    local response_body = {}
+    local res, code, response_headers = http.request({
+        url = BRIDGE_URL,
+        method = "POST",
+        headers = {
+            ["Content-Type"] = "application/json",
+            ["Content-Length"] = #json_payload
+        },
+        source = ltn12.source.string(json_payload),
+        sink = ltn12.sink.table(response_body)
+    })
+
+    if code ~= 200 then
+        -- Silent fail in sim to prevent stutter, check Bridge console for issues
+    end
 end
 
 do_often("send_hems_telemetry()")
