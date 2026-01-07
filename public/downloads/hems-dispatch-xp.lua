@@ -1,4 +1,4 @@
--- HEMS TACTICAL UPLINK v5.3 (No-SSL Edition)
+-- HEMS TACTICAL UPLINK v5.4 (Debug Edition)
 -- Requirement: FlyWithLua
 -- Location: X-Plane/Resources/plugins/FlyWithLua/Scripts/
 
@@ -7,7 +7,7 @@ local socket = require("socket")
 -- CONFIGURATION
 local HOST = "127.0.0.1"
 local PORT = 8080
-local UPDATE_INTERVAL = 1.5 -- Seconds between packets
+local UPDATE_INTERVAL = 1.0 -- Packet every second
 local last_run = 0
 
 -- DATAREFS
@@ -23,17 +23,17 @@ function send_hems_telemetry()
     if now - last_run < UPDATE_INTERVAL then return end
     last_run = now
 
-    -- 1. Construct JSON
     local payload = string.format(
         '{"latitude":%f,"longitude":%f,"altitudeFt":%d,"groundSpeedKts":%d,"headingDeg":%d,"fuelRemainingLbs":%d}',
         lat, lon, math.floor(alt_msl * 3.28084), math.floor(gs_ms * 1.94384), math.floor(hdg_true), math.floor(fuel_kg * 2.20462)
     )
 
-    -- 2. Open Raw TCP Socket (Bypasses SSL requirement)
     local tcp = socket.tcp()
-    tcp:settimeout(0.1) -- Don't freeze X-Plane if bridge is closed
+    tcp:settimeout(0.05)
     
-    if tcp:connect(HOST, PORT) then
+    local success, err = tcp:connect(HOST, PORT)
+    
+    if success then
         local http_request = 
             "POST /telemetry HTTP/1.1\r\n" ..
             "Host: " .. HOST .. "\r\n" ..
@@ -44,6 +44,11 @@ function send_hems_telemetry()
         
         tcp:send(http_request)
         tcp:close()
+        -- Uncomment below to see logs in X-Plane Dev Console
+        -- logMsg("HEMS: Uplink OK")
+    else
+        -- If it fails, we print to the console
+        logMsg("HEMS UPLINK ERROR: " .. tostring(err))
     end
 end
 

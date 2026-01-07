@@ -15,6 +15,9 @@ let lastHeartbeat = 0;
 
 // 1. RECEIVE FROM X-PLANE (Lua script)
 app.post('/telemetry', (req, res) => {
+    // Log every packet to the terminal so the user knows it's working
+    console.log(`[DATA] Packet received: Alt ${Math.round(req.body.altitudeFt)}ft | GS ${Math.round(req.body.groundSpeedKts)}kts`);
+    
     currentTelemetry = {
         ...req.body,
         timestamp: Date.now()
@@ -32,7 +35,9 @@ app.get('/api/status', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`\n[SUCCESS] HEMS Bridge is ACTIVE.`);
-    console.log(`[LINK] HUD available at http://localhost:${port}`);
-    console.log(`[UPLINK] Awaiting data from X-Plane Lua script...\n`);
+    console.log(`\n========================================`);
+    console.log(`[SUCCESS] HEMS Tactical Bridge is ACTIVE.`);
+    console.log(`[LINK] Open this in your browser: http://localhost:${port}`);
+    console.log(`[UPLINK] Awaiting data from X-Plane...`);
+    console.log(`========================================\n`);
 });
