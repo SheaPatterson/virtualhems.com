@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
 };
 
-// Helper for distance
+// Helper for distance calculation in Nautical Miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -62,7 +62,6 @@ serve(async (req) => {
     if (mission?.callsign) {
         callsign = mission.callsign;
     } else {
-        // Fallback: Use profile name/initials for general tracking
         const { data: profile } = await supabaseAdmin
             .from('profiles')
             .select('first_name, last_name')
@@ -74,7 +73,7 @@ serve(async (req) => {
         }
     }
 
-    // 3. Update Global Status
+    // 3. Update Global Status (For Instructor Monitoring)
     await supabaseAdmin.from('live_pilot_status').upsert({
         user_id: userId,
         last_seen: new Date().toISOString(),
@@ -104,7 +103,7 @@ serve(async (req) => {
         }).eq('mission_id', mission.mission_id);
     }
 
-    // 5. Construct Enhanced Tactical Response for Lua
+    // 5. Construct Enhanced Tactical Response (returned to sim)
     let resp = "ID:NONE|TO:STANDBY|PHASE:ONLINE|DIST:0|REM:0|PT:NONE";
     if (mission) {
         const dist = calculateDistance(lat, lon, mission.destination.latitude, mission.destination.longitude);

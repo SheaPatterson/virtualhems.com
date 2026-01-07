@@ -10,7 +10,7 @@ import PageHeader from '@/components/PageHeader';
 const AdminOverview = () => {
   const { config, isLoading: isConfigLoading } = useConfig();
 
-  // Real-time stats fetching
+  // Real-time stats fetching with organizational performance metrics
   const { data: stats, isLoading: isStatsLoading } = useQuery({
     queryKey: ['adminDashboardStats'],
     queryFn: async () => {
@@ -30,13 +30,13 @@ const AdminOverview = () => {
             .limit(1)
             .single();
 
-        // NEW: Fetch AOG count
+        // Fetch AOG count for technical readiness audit
         const { count: aogCount } = await supabase
             .from('helicopters')
             .select('*', { count: 'exact', head: true })
             .eq('maintenance_status', 'AOG');
 
-        // NEW: Calculate average performance score
+        // Calculate organizational average performance score
         const { data: avgScoreData } = await supabase
             .from('missions')
             .select('performance_score')
@@ -96,38 +96,38 @@ const AdminOverview = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <AdminStatCard title="Total Missions" value={stats?.missions || 0} icon={Zap} description="Historical dispatches" />
-        <AdminStatCard title="Fleet Strength" value={stats?.aircraft || 0} icon={PlaneTakeoff} description="Registered helicopters" />
-        <AdminStatCard title="Avg. Performance" value={`${stats?.avgScore || 0}%`} icon={TrendingUp} description="Fleet average mission score" />
-        <AdminStatCard title="AOG Aircraft" value={stats?.aogCount || 0} icon={Wrench} description="Aircraft On Ground (Maintenance)" />
+        <AdminStatCard title="Total Missions" value={stats?.missions || 0} icon={Zap} description="Historical organization dispatches" />
+        <AdminStatCard title="Fleet Strength" value={stats?.aircraft || 0} icon={PlaneTakeoff} description="Registered active airframes" />
+        <AdminStatCard title="Avg. Performance" value={`${stats?.avgScore || 0}%`} icon={TrendingUp} description="Institutional performance metric" />
+        <AdminStatCard title="AOG Aircraft" value={stats?.aogCount || 0} icon={Wrench} description="Aircraft On Ground (Technical Alert)" />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2">
-            <CardHeader>
+        <Card className="lg:col-span-2 border-2">
+            <CardHeader className="bg-muted/30 border-b">
                 <CardTitle className="text-xl flex items-center">
                     <Activity className="w-5 h-5 mr-2 text-primary" /> Management Terminal
                 </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
                 {[
-                    { title: 'Live Operations', desc: 'Monitor active air traffic.', link: '/admin/live-ops', icon: Activity },
-                    { title: 'NOTAM Broadcast', desc: 'Issue system-wide alerts.', link: '/admin/notams', icon: Megaphone },
-                    { title: 'Aircraft Control', desc: 'Manage aircraft specs.', link: '/admin/aircraft', icon: PlaneTakeoff },
-                    { title: 'Crew Bases', desc: 'Manage HEMS station data.', link: '/admin/crew-bases', icon: MapPin },
-                    { title: 'Facility Registry', desc: 'Update hospital data.', link: '/admin/hospitals', icon: Hospital },
-                    { title: 'Content Engine', desc: 'Edit dynamic pages.', link: '/admin/content', icon: FileText },
-                    { title: 'User Profiles', desc: 'Edit personnel records.', link: '/admin/profiles', icon: Users },
-                    { title: 'RBAC Security', desc: 'Manage permissions.', link: '/admin/permission', icon: ShieldCheck },
+                    { title: 'Live Operations', desc: 'Real-time theater monitoring.', link: '/admin/live-ops', icon: Activity },
+                    { title: 'NOTAM Broadcast', desc: 'Regional safety directives.', link: '/admin/notams', icon: Megaphone },
+                    { title: 'Aircraft Control', desc: 'Technical specifications audit.', link: '/admin/aircraft', icon: PlaneTakeoff },
+                    { title: 'Crew Bases', desc: 'Station readiness management.', link: '/admin/crew-bases', icon: MapPin },
+                    { title: 'Facility Registry', desc: 'Trauma center data master.', link: '/admin/hospitals', icon: Hospital },
+                    { title: 'Content Engine', desc: 'Manuals & SOP editor.', link: '/admin/content', icon: FileText },
+                    { title: 'Personnel Manifest', desc: 'Pilot training records.', link: '/admin/profiles', icon: Users },
+                    { title: 'RBAC Security', desc: 'System access control.', link: '/admin/permission', icon: ShieldCheck },
                 ].map((tool) => (
                     <a key={tool.title} href={tool.link} className="group">
-                        <div className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 transition-all h-full flex items-start space-x-4">
+                        <div className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 transition-all h-full flex items-start space-x-4 shadow-sm">
                             <div className="p-2 bg-muted rounded-lg group-hover:bg-primary/20 group-hover:text-primary transition-colors">
                                 <tool.icon className="w-6 h-6" />
                             </div>
                             <div>
                                 <h4 className="font-bold text-lg">{tool.title}</h4>
-                                <p className="text-sm text-muted-foreground">{tool.desc}</p>
+                                <p className="text-xs text-muted-foreground">{tool.desc}</p>
                             </div>
                         </div>
                     </a>
@@ -135,30 +135,30 @@ const AdminOverview = () => {
             </CardContent>
         </Card>
 
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-xl">System Variables</CardTitle>
-                <CardDescription>Global configuration settings</CardDescription>
+        <Card className="border-2">
+            <CardHeader className="bg-muted/30 border-b">
+                <CardTitle className="text-xl">Safety Thresholds</CardTitle>
+                <CardDescription>Global mission logic variables</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
                 <div className="space-y-1">
-                    <p className="text-xs font-mono text-muted-foreground uppercase">System Name</p>
-                    <p className="font-bold text-lg">{getConfigValue('systemName', 'HEMS Dispatch System')}</p>
+                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Regional ID</p>
+                    <p className="font-bold text-lg">{getConfigValue('systemName', 'HEMS OPS-CENTER')}</p>
                 </div>
                 <Separator />
                 <div className="space-y-1">
-                    <p className="text-xs font-mono text-muted-foreground uppercase">Fuel Reserve</p>
-                    <p className="font-bold">{getConfigValue('fuelReserveMinutes', '20')} Minutes</p>
+                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Reserve Fuel Target</p>
+                    <p className="font-bold text-lg">{getConfigValue('fuelReserveMinutes', '20')} Minutes</p>
                 </div>
                 <Separator />
                 <div className="space-y-1">
-                    <p className="text-xs font-mono text-muted-foreground uppercase">Max Patient Weight</p>
-                    <p className="font-bold">{getConfigValue('maxPatientWeightLbs', '350')} Lbs</p>
+                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Max Transport Mass</p>
+                    <p className="font-bold text-lg">{getConfigValue('maxPatientWeightLbs', '350')} Lbs</p>
                 </div>
                 <Separator />
                 <div className="space-y-1">
-                    <p className="text-xs font-mono text-muted-foreground uppercase">Support Contact</p>
-                    <p className="font-bold text-sm">{getConfigValue('supportEmail', 'ops@hemssim.com')}</p>
+                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">SOP Support Link</p>
+                    <p className="font-bold text-xs truncate">{getConfigValue('supportEmail', 'ops@hemssim.com')}</p>
                 </div>
             </CardContent>
         </Card>

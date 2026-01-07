@@ -52,6 +52,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
     const { data: livePilots } = useLivePilots();
     const center: [number, number] = [40.4406, -79.9959];
 
+    // Separate pilots into those on active missions and those free-flying
     const missionUserIds = new Set(missions.map(m => m.user_id));
     const standalonePilots = livePilots?.filter(p => !missionUserIds.has(p.user_id)) || [];
 
