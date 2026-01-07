@@ -1,13 +1,15 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen, ShieldCheck, Info, Layout, MapPin, Lock } from 'lucide-react';
+import { BookOpen, ShieldCheck, Info, Terminal, Cpu, Zap } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const Documentation = () => {
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-5xl space-y-8">
       <PageHeader 
-        title="Tactical Integration Manual"
-        description="Official technical protocols for the HEMS OPS-CENTER v4.2 Production Environment."
+        title="Tactical Integration Hub"
+        description="Official technical protocols for the HEMS Tactical Bridge v5.2 Environment."
         icon={BookOpen}
       />
 
@@ -15,11 +17,11 @@ const Documentation = () => {
         <Card className="border-l-4 border-primary bg-primary/5">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-4">
-              <ShieldCheck className="w-10 h-10 text-primary shrink-0" />
+              <Zap className="w-10 h-10 text-primary shrink-0" />
               <div className="space-y-2">
-                <h3 className="text-xl font-black uppercase italic">Professional Standards Compliance</h3>
+                <h3 className="text-xl font-black uppercase italic text-primary">New: Standalone Bridge Architecture</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  The HEMS OPS-CENTER is designed for high-fidelity training. This system utilizes a <strong>Real-Time REST Gateway</strong> to synchronize flight dynamics from X-Plane and MSFS into a centralized dispatch environment.
+                  We have retired the legacy in-sim Lua scripts. The new <strong>HEMS Tactical Bridge</strong> is a standalone Sidecar application that connects to your simulator and streams telemetry directly to our cloud servers without impacting your simulator's frame rate or stability.
                 </p>
               </div>
             </div>
@@ -27,124 +29,105 @@ const Documentation = () => {
         </Card>
 
         <div className="prose prose-orange dark:prose-invert max-w-none space-y-12">
-          {/* Section 1: SSL Fix */}
-          <div id="ssl-fix">
-            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-red-600/20 pb-2 flex items-center">
-              <Lock className="w-6 h-6 mr-2 text-red-600" /> SSL Library (LuaSec) Setup
-            </h2>
-            <div className="bg-red-600/5 border-2 border-red-600/20 p-6 rounded-2xl space-y-4">
-                <p className="text-sm font-bold">If you see "SSL LIB MISSING" on your screen, follow these steps:</p>
-                <p className="text-sm">
-                    X-Plane 11/12 requires the <strong>LuaSec</strong> library to communicate securely with our servers via HTTPS. Many FlyWithLua installations do not include this by default.
-                </p>
-                <div className="grid md:grid-cols-2 gap-4 not-prose">
-                    <Card className="p-4 bg-background">
-                        <h4 className="font-bold text-xs uppercase mb-2">1. Download Binaries</h4>
-                        <p className="text-[10px] text-muted-foreground">Download a pre-compiled version of LuaSec (for Lua 5.1/LuaJIT). You can find these on the X-Plane.org forums or GitHub (LuaSec).</p>
-                    </Card>
-                    <Card className="p-4 bg-background">
-                        <h4 className="font-bold text-xs uppercase mb-2">2. Installation Path</h4>
-                        <p className="text-[10px] text-muted-foreground">Place <code>ssl.lua</code> and the binary <code>ssl.dll</code> (Win) or <code>ssl.so</code> (Mac/Linux) into:<br/><code>FlyWithLua/Internals/Modules/</code></p>
-                    </Card>
-                </div>
-                <div className="flex items-start space-x-3 text-xs bg-black/10 p-3 rounded-lg border border-black/10">
-                    <Info className="w-4 h-4 mt-0.5 text-primary" />
-                    <p>Restart X-Plane or reload scripts (Ctrl+Alt+R) after placing the files. The error message will disappear and the <strong>LNK</strong> indicator will turn green.</p>
-                </div>
-            </div>
-          </div>
-
-          {/* Section 2: System Architecture */}
+          {/* Section 1: Core Architecture */}
           <div>
             <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">1. System Architecture</h2>
             <p>
-              The plugin acts as a <strong>Tactical Data Link (TDL)</strong>. It establishes an encrypted handshake with the HEMS Edge Gateway using your unique API Key. Once established, the system performs a "Deep Sync" every 4 seconds.
+              The Bridge acts as a <strong>Sidecar Process</strong>. It establishes a local link with your simulator's Web API and a secure cloud uplink with the HEMS OPS-CENTER.
             </p>
-            <ul>
-              <li><strong>Uplink:</strong> Transmits GPS, Altitude, Ground Speed, Fuel State, and Engine Status.</li>
-              <li><strong>Downlink:</strong> Retrieves Active Mission Waypoints, Patient Vitals, and Landing Zone Recon.</li>
-              <li><strong>AI Dispatcher:</strong> A state-aware agent that analyzes TDL data to provide contextual radio calls via Text-to-Speech (TTS).</li>
-            </ul>
+            <div className="grid md:grid-cols-3 gap-4 not-prose mt-6">
+                <Card className="p-4 bg-muted/30 border-2">
+                    <Cpu className="w-6 h-6 mb-2 text-primary" />
+                    <h4 className="font-bold text-xs uppercase">Zero-Impact</h4>
+                    <p className="text-[10px] text-muted-foreground">Networking is handled outside of the simulator thread, eliminating micro-stutters.</p>
+                </Card>
+                <Card className="p-4 bg-muted/30 border-2">
+                    <Terminal className="w-6 h-6 mb-2 text-primary" />
+                    <h4 className="font-bold text-xs uppercase">Native Rest</h4>
+                    <p className="text-[10px] text-muted-foreground">Uses high-speed REST and WebSocket protocols for real-time positional data.</p>
+                </Card>
+                <Card className="p-4 bg-muted/30 border-2">
+                    <ShieldCheck className="w-6 h-6 mb-2 text-primary" />
+                    <h4 className="font-bold text-xs uppercase">Encrypted Link</h4>
+                    <p className="text-[10px] text-muted-foreground">TLS 1.3 encryption for all telemetry packets and patient data downlink.</p>
+                </Card>
+            </div>
           </div>
 
-          {/* Section 3: Installation */}
+          {/* Section 2: Installation */}
           <div>
-            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">2. Installation Guide</h2>
-            <h3 className="text-primary uppercase">X-Plane 11 / 12</h3>
-            <ol>
-              <li>Download the <strong>hems-dispatch-xp.lua</strong> script from the Plugins page.</li>
-              <li>Place the file in <code>[X-Plane Path]/Resources/plugins/FlyWithLua/Scripts</code>.</li>
-              <li>Open the script with Notepad++ or VS Code and find the line <code>local API_KEY = "..."</code>.</li>
-              <li>Paste your key from the dashboard into those quotes.</li>
-            </ol>
-            <h3 className="text-primary uppercase">MSFS 2020 / 2024</h3>
+            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">2. Bridge Installation</h2>
             <p>
-              Download the <strong>HEMS-Connector-WASM</strong> package and move it into your <code>Community</code> folder. Launch the in-sim toolbar and authenticate via the generated QR code.
+              The bridge is a pre-configured React/Node application located in the <strong>Plugins</strong> directory.
             </p>
+            <ol className="space-y-4">
+              <li>
+                  <strong>Download Source:</strong> Access the <code>hems-dispatch.zip</code> from the <Link to="/plugins" className="text-primary font-bold hover:underline">Integration Hub</Link>.
+              </li>
+              <li>
+                  <strong>Environment Setup:</strong> Ensure <a href="https://nodejs.org" target="_blank" className="font-bold text-primary hover:underline">Node.js</a> (v18+) is installed on your Windows/Mac machine.
+              </li>
+              <li>
+                  <strong>Deploy Dependencies:</strong> Open a terminal in the extracted folder and run:
+                  <div className="bg-black text-[#00ff41] p-3 rounded-lg font-mono text-xs mt-2">npm install && npm start</div>
+              </li>
+              <li>
+                  <strong>Secure Auth:</strong> Enter your <strong>Unique API Key</strong> found on your <Link to="/user" className="text-primary font-bold hover:underline">Personnel Profile</Link> into the Bridge UI.
+              </li>
+            </ol>
+          </div>
+
+          {/* Section 3: Simulator Link */}
+          <div>
+            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">3. Simulator Handshake</h2>
+            <p>
+              The Bridge requires a local API to be active in your simulator to "pull" the datarefs.
+            </p>
+            <div className="grid md:grid-cols-2 gap-6 not-prose">
+                <Card className="p-6 border-2">
+                    <h4 className="font-bold uppercase text-sm mb-2 text-primary">X-Plane 11 / 12</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">Requires the <strong>X-Plane Web API</strong> plugin (port 8086). Ensure "Allow Remote Connections" is checked in the plugin settings.</p>
+                    <Badge variant="outline">PORT: 8086</Badge>
+                </Card>
+                <Card className="p-6 border-2">
+                    <h4 className="font-bold uppercase text-sm mb-2 text-primary">MSFS 2020 / 2024</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">Requires the <strong>SimConnect-to-HTTP</strong> bridge or our native WASM package to provide the local data endpoint.</p>
+                    <Badge variant="outline">PORT: 8080</Badge>
+                </Card>
+            </div>
           </div>
 
           {/* Section 4: EFB Integration */}
           <div>
-            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">3. EFB / Tablet Integration</h2>
+            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">4. Tablet / EFB Sync</h2>
             <p>
-              The HEMS OPS-CENTER provides a dedicated <strong>Electronic Flight Bag (EFB)</strong> interface, perfect for a second monitor or a tablet like an iPad. This eliminates the need for third-party in-sim browser plugins.
+              Once the Bridge is active and you have dispatched a mission, use the <strong>EFB Mode</strong> for a secondary flight display.
             </p>
-            <div className="bg-muted p-6 rounded-2xl border">
-                <p className="font-bold uppercase text-xs mb-2">Integration Workflow:</p>
-                <ol className="text-sm space-y-2">
-                    <li>Once a mission is active, navigate to the <strong>Live Tracking</strong> page for that flight.</li>
-                    <li>Click the <strong className="text-primary">EFB</strong> button, which displays a QR code.</li>
-                    <li>Scan this QR code with your tablet's camera to instantly open the dedicated cockpit view.</li>
-                    <li>The EFB will now display a live tactical map, comms panel, checklists, and briefing data, all synced in real-time with your simulator.</li>
-                </ol>
+            <div className="bg-muted p-6 rounded-2xl border flex items-start space-x-4">
+                <div className="p-3 bg-primary/10 rounded-full"><Zap className="w-6 h-6 text-primary" /></div>
+                <div className="space-y-2">
+                    <p className="font-bold uppercase text-xs">Zero-Config Mobile Link:</p>
+                    <p className="text-sm text-muted-foreground">Navigate to your mission tracking page and scan the QR code with your iPad or Android tablet. This creates a direct high-speed websocket link to your active telemetry stream.</p>
+                </div>
             </div>
           </div>
 
-          {/* Section 5: Scenery Development */}
-          <div>
-            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">4. Scenery Development (World Editor)</h2>
-            <p>
-                To maintain the high visual standard of our regional network, we use <strong>World Editor (WED)</strong> to design and export custom landing zones.
-            </p>
-            <div className="grid md:grid-cols-2 gap-6 not-prose">
-                <Card className="p-4 border-2 bg-muted/20">
-                    <h4 className="font-bold flex items-center text-sm mb-2 uppercase">
-                        <Layout className="w-4 h-4 mr-2 text-primary" /> LZ Design
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                        Use WED to place "Helipad" objects with correct surface types. Ensure pads are marked as "Transparent" if using custom textures to avoid X-Plane's default flickering.
-                    </p>
-                </Card>
-                <Card className="p-4 border-2 bg-muted/20">
-                    <h4 className="font-bold flex items-center text-sm mb-2 uppercase">
-                        <MapPin className="w-4 h-4 mr-2 text-primary" /> Metadata
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                        All LZs must include an <strong>ICAO Identifier</strong> (e.g., PS12) that matches the HEMS Registry to enable automatic approach briefings in the cockpit EFB.
-                    </p>
-                </Card>
-            </div>
-            <p className="mt-4">
-                Completed scenery packages should be zipped and uploaded to the <strong>Resource Library</strong> for distribution to the fleet.
-            </p>
-          </div>
-
-          {/* Section 6: Troubleshooting */}
+          {/* Section 5: Troubleshooting */}
           <div className="pb-10">
-            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2">5. Troubleshooting</h2>
+            <h2 className="text-3xl font-black uppercase italic tracking-tight border-b-2 border-primary/20 pb-2 text-red-600">5. Troubleshooting</h2>
             <div className="space-y-4">
                 <div className="flex gap-4">
                     <div className="bg-red-500/10 p-2 rounded h-fit"><Info className="w-4 h-4 text-red-600" /></div>
                     <div>
-                        <p className="font-bold text-sm uppercase">Status: No Telemetry Received</p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">Check your API key. In X-Plane, check the <code>Log.txt</code> in your main folder. Look for "LuaSec Error" which indicates a missing SSL library.</p>
+                        <p className="font-bold text-sm uppercase">Uplink Status: AUTH_FAILED</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">Your API key is invalid or has been rotated. Generate a new key in your Profile settings and update the Bridge config.</p>
                     </div>
                 </div>
                 <div className="flex gap-4">
                     <div className="bg-red-500/10 p-2 rounded h-fit"><Info className="w-4 h-4 text-red-600" /></div>
                     <div>
-                        <p className="font-bold text-sm uppercase">Status: AI Dispatcher Mute</p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">The AI Agent requires the "Desktop Audio" focus. Ensure your simulator is not running in 'exclusive' fullscreen mode if TTS is failing to initialize.</p>
+                        <p className="font-bold text-sm uppercase">Uplink Status: SIM_OFFLINE</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">The Bridge cannot see your simulator. Verify that the simulator is running and that the local API plugin is active on the correct port.</p>
                     </div>
                 </div>
             </div>
