@@ -1,0 +1,132 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { MissionReport } from '@/data/hemsData';
+import { initXPlaneConnection, getTelemetry } from '@/plugins/xplane/xplaneWebApi';
+import { determineFlightPhase } from '@/plugins/xplane/utils';
+import { sendTelemetryUpdate } from '@/integrations/simulator/api';
+
+const TELEMETRY_INTERVAL_MS = 4000;
+
+export const useSimulatorPlugin = () => {
+    const [apiKey, setApiKey] = useState(localStorage.getItem('hems_api_key') || '');
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('hems_api_key'));
+    
+    const [missions, setMissions] = useState<MissionReport[]>([]);
+    const [selectedMission, setSelectedMission] = useState<MissionReport | null>(null);
+    const [isLoadingMissions, setIsLoadingMissions] = useState(false);
+    
+    const [isConnected, setIsConnected] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
+    
+    const [consoleOutput, setConsoleOutput] = useState<string[]>(["[SYS] BOOT_SEQUENCE_COMPLETE"]);
+    const telemetryInterval = useRef<number | null>(null);
+    const lastReachedWaypointIndex = useRef(0);
+
+    const addToConsole = useCallback((msg: string) => {
+        const timestamp = new Date().toLocaleTimeString([], { hour12: false });
+        setConsoleOutput(prev => [...prev.slice(-50), `[${timestamp}] ${msg}`]);
+    }, []);
+
+    const handleAuth = () => {
+        if (apiKey.length < 10) {
+            toast.error("Invalid API Key format.");
+            addToConsole("CRITICAL_ERR: AUTH_DENIED - INVALID TOKEN");
+            return;
+        }
+        localStorage.setItem('hems_api_key', apiKey);
+        setIsAuthenticated(true);
+        addToConsole("LINK_ESTABLISHED: HEMS_GATEWAY_v4.2");
+        toast.success("Tactical Link Authenticated.");
+    };
+
+    const connectToSimulator = async (host: string, port: number) => {
+        setIsConnecting(true);
+        addToConsole(`INIT_HANDSHAKE: ${host}:${port}`);
+        const success = await initXPlaneConnection(host, port);
+        setIsConnected(success);
+        setIsConnecting(false);
+        if (success) {
+            addToConsole("UPLINK_ESTABLISHED: X-PLANE_WEB_API");
+            toast.success(`Connection to X-Plane at ${host}:${port} successful.`);
+        } else {
+            addToConsole("ERR: HANDSHAKE_FAILED");
+            toast.error("Connection to X-Plane failed. Check plugin status.");
+        }
+    };
+
+    const loadMissions = useCallback(async () => {
+        if (!isAuthenticated) return;
+        setIsLoadingMissions(true);
+        addToConsole("POLLING_DISPATCH_CENTER...");
+        const { data } = await supabase.from('missions').select('*').eq('status', 'active').order('created_at', { ascending: false });
+        if (data) {
+            const mappedMissions = data.map((m: any) => ({ ...m, missionId: m.mission_id, callsign: m.callsign || 'HEMS UNIT' })) as any;
+            setMissions(mappedMissions);
+            addToConsole(`RX_DATA: ${data.length} ACTIVE_MISSIONS`);
+            if (data.length > 0 && !selectedMission) {
+                setSelectedMission(mappedMissions[0]);
+                addToConsole(`AUTO_LOCK: ${mappedMissions[0].missionId}`);
+            }
+        }
+        setIsLoadingMissions(false);
+    }, [isAuthenticated, selectedMission, addToConsole]);
+
+    const startSync = () => {
+        if (!selectedMission || !isConnected || isSyncing) return;
+        setIsSyncing(true);
+        addToConsole("TELEMETRY_STREAM: ENGAGED");
+        toast.info("Live telemetry sync started.");
+
+        lastReachedWaypointIndex.current = 0;
+
+        const mainLoop = async () => {
+            try {
+                const telemetry = await getTelemetry();
+                const { newIndex, phase } = determineFlightPhase(telemetry.latitude, telemetry.longitude, selectedMission.waypoints, lastReachedWaypointIndex.current);
+                lastReachedWaypointIndex.current = newIndex;
+
+                const payload = {
+                    ...telemetry,
+                    mission_id: selectedMission.missionId,
+                    phase,
+                    timeEnrouteMinutes: (selectedMission.tracking.timeEnrouteMinutes || 0) + (TELEMETRY_INTERVAL_MS / 60000),
+                };
+
+                const success = await sendTelemetryUpdate(payload);
+                if (success) {
+                    addToConsole(`TX_PACKET: ${phase} | ${telemetry.fuelRemainingLbs}lbs`);
+                    setSelectedMission(prev => prev ? { ...prev, tracking: { ...prev.tracking, ...payload } } : null);
+                    if (phase === 'Complete') stopSync();
+                } else {
+                    addToConsole("ERR: TELEMETRY_UPLINK_FAILED");
+                }
+            } catch (e) {
+                addToConsole(`ERR: ${e instanceof Error ? e.message : 'Unknown telemetry error'}`);
+                stopSync();
+            }
+        };
+
+        telemetryInterval.current = setInterval(mainLoop, TELEMETRY_INTERVAL_MS) as unknown as number;
+    };
+
+    const stopSync = () => {
+        if (telemetryInterval.current) clearInterval(telemetryInterval.current);
+        setIsSyncing(false);
+        addToConsole("TELEMETRY_STREAM: DISENGAGED");
+        toast.info("Telemetry sync stopped.");
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) loadMissions();
+    }, [isAuthenticated, loadMissions]);
+
+    return {
+        apiKey, setApiKey, isAuthenticated, handleAuth,
+        missions, selectedMission, setSelectedMission, isLoadingMissions, loadMissions,
+        isConnected, isConnecting, connectToSimulator,
+        isSyncing, startSync, stopSync,
+        consoleOutput,
+    };
+};

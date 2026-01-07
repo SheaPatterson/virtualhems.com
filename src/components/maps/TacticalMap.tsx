@@ -1,0 +1,155 @@
+import React, { useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { HemsBase } from '@/data/hemsData';
+import { HistoricalMission } from '@/hooks/useMissions';
+import { Activity, Navigation, Fuel } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import MapContainerWrapper from '@/components/MapContainer';
+import WeatherRadarOverlay from '@/components/dashboard/WeatherRadar';
+import { useLivePilots } from '@/hooks/useLivePilots';
+
+const BaseIcon = L.divIcon({
+    className: 'base-marker',
+    html: `<div class="p-1.5 rounded-full bg-primary text-primary-foreground border-2 border-white shadow-xl flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+});
+
+const MissionAircraftIcon = L.divIcon({
+    className: 'aircraft-marker',
+    html: `<div class="p-1.5 rounded-full bg-black text-[#00ff41] border-2 border-[#00ff41] shadow-[0_0_10px_rgba(0,255,65,0.5)] flex items-center justify-center animate-pulse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+});
+
+const FreeAircraftIcon = L.divIcon({
+    className: 'aircraft-marker',
+    html: `<div class="p-1.5 rounded-full bg-white text-primary border-2 border-primary shadow-[0_0_10px_rgba(255,165,0,0.3)] flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+});
+
+const MapBoundsFitter: React.FC<{ points: [number, number][] }> = ({ points }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (points.length > 0) {
+            const bounds = L.latLngBounds(points);
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+        }
+    }, [map, points]);
+    return null;
+};
+
+interface TacticalMapProps {
+    missions: HistoricalMission[];
+    bases: HemsBase[];
+}
+
+const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
+    const { data: livePilots } = useLivePilots();
+    const center: [number, number] = [40.4406, -79.9959];
+
+    // Filter out live pilots who are already represented by active missions to avoid double markers
+    const missionUserIds = new Set(missions.map(m => m.user_id));
+    const standalonePilots = livePilots?.filter(p => !missionUserIds.has(p.user_id)) || [];
+
+    const boundPoints = useMemo(() => {
+        const p: [number, number][] = [];
+        bases.forEach(b => p.push([b.latitude, b.longitude]));
+        missions.forEach(m => p.push([m.tracking.latitude, m.tracking.longitude]));
+        standalonePilots.forEach(pilot => p.push([pilot.latitude, pilot.longitude]));
+        return p;
+    }, [bases, missions, standalonePilots]);
+
+    return (
+        <MapContainerWrapper className="h-full border-none rounded-none bg-black relative">
+            <WeatherRadarOverlay />
+            
+            <MapContainer 
+                center={center} 
+                zoom={9} 
+                scrollWheelZoom={true} 
+                className="h-full w-full grayscale-[0.6] invert-[0.1] contrast-[1.2]"
+            >
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+
+                {/* Bases */}
+                {bases.map(base => (
+                    <Marker key={base.id} position={[base.latitude, base.longitude]} icon={BaseIcon}>
+                        <Popup className="tactical-popup">
+                            <div className="space-y-1">
+                                <p className="font-black uppercase tracking-tighter text-primary">HEMS BASE: {base.name}</p>
+                                <p className="text-xs font-bold text-muted-foreground">{base.location}</p>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
+
+                {/* Active Mission Tracks */}
+                {missions.map(mission => (
+                    <Marker key={mission.missionId} position={[mission.tracking.latitude, mission.tracking.longitude]} icon={MissionAircraftIcon}>
+                        <Popup>
+                            <div className="space-y-2 min-w-[180px]">
+                                <div className="flex justify-between items-center border-b pb-1">
+                                    <span className="font-black italic text-primary">{mission.callsign}</span>
+                                    <Badge variant="outline" className="text-[9px]">MISSION ACTIVE</Badge>
+                                </div>
+                                <div className="space-y-1 text-xs">
+                                    <p><strong>Phase:</strong> {mission.tracking.phase || 'ENROUTE'}</p>
+                                    <p><strong>Dest:</strong> {mission.destination.name}</p>
+                                </div>
+                                <Button asChild size="sm" className="w-full mt-2 h-7 text-[10px] font-bold uppercase italic">
+                                    <a href={`/tracking/${mission.missionId}`}>Lock Tactical Tracking</a>
+                                </Button>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
+
+                {/* Standalone Live Pilot Tracks */}
+                {standalonePilots.map(pilot => (
+                    <Marker key={pilot.user_id} position={[pilot.latitude, pilot.longitude]} icon={FreeAircraftIcon}>
+                        <Popup>
+                            <div className="space-y-2 min-w-[180px]">
+                                <div className="flex justify-between items-center border-b pb-1">
+                                    <span className="font-black italic text-primary">{pilot.callsign}</span>
+                                    <Badge variant="secondary" className="text-[9px]">AVAILABLE</Badge>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                    <div className="flex items-center"><Navigation className="w-2.5 h-2.5 mr-1" /> {pilot.altitude_ft} FT</div>
+                                    <div className="flex items-center"><Activity className="w-2.5 h-2.5 mr-1" /> {pilot.ground_speed_kts} KT</div>
+                                    <div className="flex items-center"><Fuel className="w-2.5 h-2.5 mr-1" /> {pilot.fuel_remaining_lbs} LB</div>
+                                </div>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
+
+                <MapBoundsFitter points={boundPoints} />
+            </MapContainer>
+
+            {/* Tactical Info Overlay */}
+            <div className="absolute bottom-6 right-6 z-[500] pointer-events-none">
+                <div className="bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-[#00ff41] font-mono shadow-2xl">
+                    <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] mb-2 border-b border-[#00ff41]/20 pb-2">
+                        <Activity className="w-4 h-4 animate-pulse" />
+                        <span>RADAR_SYNC_v4.9</span>
+                    </div>
+                    <div className="space-y-1 text-[9px] font-bold uppercase">
+                        <p>MISSION TRACKS: {missions.length}</p>
+                        <p>FREE UNITS: {standalonePilots.length}</p>
+                        <p>UPLINK: NOMINAL</p>
+                    </div>
+                </div>
+            </div>
+        </MapContainerWrapper>
+    );
+};
+
+export default TacticalMap;

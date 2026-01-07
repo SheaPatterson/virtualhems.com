@@ -1,0 +1,3 @@
+import Login from "./pages/Login";
+import Pricing from "./pages/Pricing";
+import Dashboard from "./pages/Dashboard";
