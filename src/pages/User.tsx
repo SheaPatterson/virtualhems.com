@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, Loader2, User as UserIcon, Mail, Image, Key, MapPin, Monitor, Award, Globe, Linkedin, MessageCircle, Info, Eye, EyeOff } from 'lucide-react';
+import { Save, Loader2, User as UserIcon, Mail, Image, Key, MapPin, Monitor, Award, Globe, Linkedin, MessageCircle, Eye, EyeOff, Medal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SubscriptionManager from '@/components/SubscriptionManager';
+import { useAchievements } from '@/hooks/useAchievements';
+import AchievementBadge from '@/components/AchievementBadge';
+import { Separator } from '@/components/ui/separator';
 
 const UserProfilePage = () => {
   const { user } = useAuth();
   const { profile, isLoading, isUpdating, updateProfile, rotateApiKey, isRotatingKey } = useProfileManagement();
+  const { achievements, isLoading: isAchLoading } = useAchievements(user?.id);
 
   const [formData, setFormData] = useState({
       first_name: '',
@@ -54,35 +58,20 @@ const UserProfilePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
-    try {
-        await updateProfile(formData);
-    } catch (error) {
-        // Handled by hook
-    }
+    await updateProfile(formData);
   };
 
   const handleRotateKey = async () => {
       if (!user) return;
       if (!confirm("Are you sure? This will disconnect your active simulator sessions.")) return;
-      try {
-          await rotateApiKey();
-      } catch (error) {
-          // Handled by hook
-      }
+      await rotateApiKey();
   };
 
   const initials = (formData.first_name?.[0] || '') + (formData.last_name?.[0] || '');
   const apiKey = profile?.api_key || 'LOGIN_TO_VIEW_KEY';
   const maskedApiKey = apiKey.length > 8 ? '••••••••••••••••••••••••••••••••' : apiKey;
 
-  if (isLoading) {
-    return (
-        <div className="container mx-auto p-4 max-w-2xl flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-    );
-  }
+  if (isLoading) return <div className="container mx-auto p-4 flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div className="container mx-auto p-4 max-w-3xl space-y-8">
@@ -98,8 +87,8 @@ const UserProfilePage = () => {
                 </div>
             </div>
             <div>
-                <h1 className="text-4xl font-black tracking-tighter uppercase italic">{formData.first_name} {formData.last_name}</h1>
-                <p className="text-muted-foreground font-mono text-sm">{user?.email}</p>
+                <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none">{formData.first_name} {formData.last_name}</h1>
+                <p className="text-muted-foreground font-mono text-sm mt-1">{user?.email}</p>
             </div>
         </div>
         <div className="bg-muted p-4 rounded-xl border flex flex-col space-y-2">
@@ -120,12 +109,29 @@ const UserProfilePage = () => {
         </div>
       </header>
 
+      {/* NEW: Achievement Medals Strip */}
+      <Card className="bg-primary/5 border-2 border-primary/20 rounded-[2rem] shadow-inner overflow-hidden">
+          <CardContent className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                  <Medal className="w-5 h-5 text-primary" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-primary/80">Operational Achievements</h3>
+                  <Separator className="flex-grow opacity-20" />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                  {isAchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                   achievements.length === 0 ? <p className="text-[10px] font-bold text-muted-foreground italic uppercase">No operational medals awarded yet.</p> :
+                   achievements.map(a => <AchievementBadge key={a.id} type={a.type} size="lg" />)
+                  }
+              </div>
+          </CardContent>
+      </Card>
+
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
               <Card>
                   <CardHeader className="pb-4">
-                      <CardTitle className="text-xl flex items-center"><UserIcon className="w-5 h-5 mr-2 text-primary" /> Personnel Details</CardTitle>
-                      <CardDescription>Core identity information for the directory.</CardDescription>
+                      <CardTitle className="text-xl flex items-center font-bold italic uppercase tracking-tight"><UserIcon className="w-5 h-5 mr-2 text-primary" /> Personnel Details</CardTitle>
+                      <CardDescription>Core identity information for the regional directory.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -151,8 +157,8 @@ const UserProfilePage = () => {
 
               <Card>
                   <CardHeader className="pb-4">
-                      <CardTitle className="text-xl flex items-center"><Award className="w-5 h-5 mr-2 text-primary" /> Professional Profile</CardTitle>
-                      <CardDescription>Share your HEMS experience and technical setup.</CardDescription>
+                      <CardTitle className="text-xl flex items-center font-bold italic uppercase tracking-tight"><Award className="w-5 h-5 mr-2 text-primary" /> Professional Profile</CardTitle>
+                      <CardDescription>Share your HEMS experience and hardware setup.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                       <div className="space-y-2">
@@ -176,7 +182,7 @@ const UserProfilePage = () => {
               
               <Card>
                   <CardHeader>
-                      <CardTitle className="text-lg flex items-center"><Globe className="w-5 h-5 mr-2 text-primary" /> Digital Presence</CardTitle>
+                      <CardTitle className="text-lg flex items-center font-bold italic uppercase tracking-tight"><Globe className="w-5 h-5 mr-2 text-primary" /> Digital Presence</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                       <div className="space-y-2">
@@ -191,22 +197,14 @@ const UserProfilePage = () => {
                           <Label htmlFor="discord" className="text-xs flex items-center"><MessageCircle className="w-3 h-3 mr-1 text-indigo-500" /> Discord ID</Label>
                           <Input id="discord" value={formData.social_links.discord} onChange={(e) => setFormData({...formData, social_links: {...formData.social_links, discord: e.target.value}})} placeholder="Handle#0000" className="text-sm h-8" />
                       </div>
-                      <div className="space-y-2">
-                          <Label htmlFor="website" className="text-xs flex items-center"><Globe className="w-3 h-3 mr-1" /> Portfolio/Website</Label>
-                          <Input id="website" value={formData.social_links.website} onChange={(e) => setFormData({...formData, social_links: {...formData.social_links, website: e.target.value}})} placeholder="URL" className="text-sm h-8" />
-                      </div>
                   </CardContent>
               </Card>
 
               <div className="sticky top-6 space-y-4">
-                  <Button type="submit" className="w-full h-12 text-lg font-bold uppercase" disabled={isUpdating}>
+                  <Button type="submit" className="w-full h-14 text-lg font-black italic shadow-2xl rounded-2xl" disabled={isUpdating}>
                       {isUpdating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-                      Push Updates
+                      PUSH UPDATES
                   </Button>
-                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                      <p className="text-[10px] font-black uppercase text-primary mb-2 flex items-center"><Info className="w-3 h-3 mr-1" /> Deployment Tip</p>
-                      <p className="text-xs text-muted-foreground leading-relaxed">Changes to your biography and professional stats are synced across the Pilot Directory instantly.</p>
-                  </div>
               </div>
           </div>
       </form>

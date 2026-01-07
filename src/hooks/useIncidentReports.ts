@@ -10,6 +10,8 @@ export interface IncidentReport {
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
   description: string;
   actions_taken: string | null;
+  status: 'Open' | 'Resolved';
+  resolution: string | null;
   created_at: string;
 }
 
@@ -23,15 +25,23 @@ const fetchReports = async (): Promise<IncidentReport[]> => {
   return data as IncidentReport[];
 };
 
-const createReport = async (report: Omit<IncidentReport, 'id' | 'created_at'>): Promise<IncidentReport> => {
+const createReport = async (report: Partial<IncidentReport>): Promise<IncidentReport> => {
   const { data, error } = await supabase
     .from('incident_reports')
     .insert([report])
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) throw error;
   return data as IncidentReport;
+};
+
+const resolveReport = async ({ id, resolution }: { id: string, resolution: string }): Promise<void> => {
+    const { error } = await supabase
+        .from('incident_reports')
+        .update({ status: 'Resolved', resolution })
+        .eq('id', id);
+    if (error) throw error;
 };
 
 export const useIncidentReports = () => {
@@ -49,10 +59,16 @@ export const useIncidentReports = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       toast.success("Safety report filed successfully.");
-    },
-    onError: (error: any) => {
-      toast.error(`Failed to file report: ${error.message}`);
     }
+  });
+
+  const resolveMutation = useMutation({
+      mutationFn: resolveReport,
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey });
+          toast.success("Incident officially closed and resolved.");
+      },
+      onError: (e: any) => toast.error(`Failed to resolve: ${e.message}`)
   });
 
   return {
@@ -60,6 +76,8 @@ export const useIncidentReports = () => {
     isLoading: reportsQuery.isLoading,
     isError: reportsQuery.isError,
     fileReport: createMutation.mutateAsync,
+    resolveReport: resolveMutation.mutateAsync,
     isSubmitting: createMutation.isPending,
+    isResolving: resolveMutation.isPending,
   };
 };

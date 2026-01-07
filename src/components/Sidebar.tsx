@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     Zap, History, FileText, Users, MapPin, Settings,
-    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, Lock
+    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, Lock, ShieldAlert
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -70,6 +70,7 @@ const adminSections: NavSection[] = [
         items: [
             { href: '/admin/overview', label: 'Admin Terminal', icon: Settings },
             { href: '/admin/live-ops', label: 'Live Operations', icon: Activity },
+            { href: '/admin/safety-audit', label: 'Safety Audit', icon: ShieldAlert },
             { href: '/admin/notams', label: 'NOTAM Broadcast', icon: Megaphone },
             { href: '/admin/permission', label: 'Personnel Access', icon: Shield },
         ],

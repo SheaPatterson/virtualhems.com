@@ -61,6 +61,7 @@ import AdminContentEditor from "./pages/admin/ContentEditor";
 import AdminPermission from "./pages/admin/Permission";
 import AdminNotams from "./pages/admin/Notams";
 import AdminConfiguration from "./pages/admin/Configuration";
+import AdminSafetyAudit from "./pages/admin/SafetyAudit";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ const App = () => (
                     <Route path="/admin/permission" element={<AdminPermission />} />
                     <Route path="/admin/configuration" element={<AdminConfiguration />} />
                     <Route path="/admin/notams" element={<AdminNotams />} />
+                    <Route path="/admin/safety-audit" element={<AdminSafetyAudit />} />
                   </Route>
                 </Route>
               </Route>

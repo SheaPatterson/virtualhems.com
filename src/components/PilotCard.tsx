@@ -1,13 +1,15 @@
 import React from 'react';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mail, User, MapPin, Globe, Linkedin, MessageCircle, Activity, Star, Clock, Zap } from 'lucide-react';
+import { Mail, User, Linkedin, MessageCircle, Star, Clock, Zap } from 'lucide-react';
 import { Profile } from '@/hooks/useProfiles';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { calculatePilotRank } from '@/utils/pilotRankUtils';
 import { usePilotSummary, useActiveMissions } from '@/hooks/useMissions';
 import { cn } from '@/lib/utils';
+import { useAchievements } from '@/hooks/useAchievements';
+import AchievementBadge from './AchievementBadge';
 
 interface PilotCardProps {
     profile: Profile;
@@ -17,14 +19,13 @@ const PilotCard: React.FC<PilotCardProps> = ({ profile }) => {
     const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'HEMS Crew Member';
     const initials = (profile.first_name?.[0] || '') + (profile.last_name?.[0] || '');
 
-    // Fetch real stats from the summary hook
     const stats = usePilotSummary(profile.id);
     const { data: activeMissions } = useActiveMissions();
+    const { achievements } = useAchievements(profile.id);
     
     const rank = calculatePilotRank(stats.count);
     const totalHours = (stats.totalMinutes / 60).toFixed(1);
     
-    // Check if pilot is currently flying
     const activeMission = activeMissions?.find(m => m.user_id === profile.id);
     const isOnDuty = !!activeMission;
 
@@ -59,28 +60,18 @@ const PilotCard: React.FC<PilotCardProps> = ({ profile }) => {
                                         ON DUTY
                                     </Badge>
                                 )}
-                                {profile.location && (
-                                    <span className="flex items-center text-[10px] font-bold text-muted-foreground uppercase">
-                                        <MapPin className="w-3 h-3 mr-1 text-primary" /> {profile.location}
-                                    </span>
-                                )}
                             </div>
                         </div>
                     </div>
-                    {isOnDuty ? (
-                        <div className="p-2 bg-green-500/10 rounded-full">
-                            <Activity className="w-6 h-6 text-green-600 animate-[pulse_2s_infinite]" />
-                        </div>
-                    ) : (
-                        <Activity className="w-6 h-6 text-primary/20 shrink-0 group-hover:text-primary transition-colors" />
-                    )}
                 </div>
 
-                {profile.bio && (
-                    <div className="relative">
-                        <p className="text-xs text-muted-foreground leading-relaxed italic line-clamp-2 pl-4 border-l-2 border-primary/20">
-                            "{profile.bio}"
-                        </p>
+                {/* Achievement Medal Strip on Card */}
+                {achievements.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                        {achievements.slice(0, 5).map(a => (
+                            <AchievementBadge key={a.id} type={a.type} size="sm" />
+                        ))}
+                        {achievements.length > 5 && <span className="text-[9px] font-black text-muted-foreground mt-1.5">+{achievements.length - 5}</span>}
                     </div>
                 )}
 
@@ -105,26 +96,11 @@ const PilotCard: React.FC<PilotCardProps> = ({ profile }) => {
                     </div>
                 </div>
 
-                {isOnDuty && activeMission && (
-                    <div className="p-3 bg-green-600/5 rounded-xl border border-green-600/20 animate-in fade-in zoom-in duration-500">
-                        <p className="text-[8px] font-black uppercase text-green-700 dark:text-green-400 tracking-[0.2em] mb-1">Active Assignment</p>
-                        <p className="text-xs font-bold italic flex items-center justify-between">
-                            <span>{activeMission.missionId}</span>
-                            <span className="text-muted-foreground">Enroute {activeMission.destination.name}</span>
-                        </p>
-                    </div>
-                )}
-
                 <div className="flex items-center justify-between pt-4 border-t border-primary/5">
                     <div className="flex items-center space-x-3">
                         {profile.social_links?.linkedin && (
                             <a href={profile.social_links.linkedin} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                                 <Linkedin className="w-4 h-4" />
-                            </a>
-                        )}
-                        {profile.social_links?.website && (
-                            <a href={profile.social_links.website} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Globe className="w-4 h-4" />
                             </a>
                         )}
                         {profile.social_links?.discord && (
