@@ -4,15 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Zap, Activity, Send, Radio, Navigation, Fuel, Clock, MapPin, Terminal, Power, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { Loader2, Zap, Radio, Navigation, Terminal, Power, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSimulatorPlugin } from '@/hooks/useSimulatorPlugin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { useMissionLogs } from '@/hooks/useMissionLogs';
-import { sendCrewMessageToAgent } from '@/integrations/dispatch/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import SimulatorMapPanel from '@/components/simulator/SimulatorMapPanel';
+import SimulatorChat from '@/components/simulator/SimulatorChat';
 
 const SimulatorPluginUI: React.FC = () => {
     const {
@@ -23,20 +22,17 @@ const SimulatorPluginUI: React.FC = () => {
         consoleOutput,
     } = useSimulatorPlugin();
 
-    const { logs, addLog } = useMissionLogs(selectedMission?.missionId);
-    const [chatInput, setChatInput] = useState('');
-    const [isSending, setIsSending] = useState(false);
-    const scrollRef = useRef<HTMLDivElement>(null);
-
     const [host, setHost] = useState(localStorage.getItem('xp_host') || 'localhost');
     const [port, setPort] = useState(localStorage.getItem('xp_port') || '8086');
+    const scrollRef = useRef<HTMLDivElement>(null); 
 
     useEffect(() => {
         if (scrollRef.current) {
             const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
             if (viewport) viewport.scrollTop = viewport.scrollHeight;
         }
-    }, [logs, isSending, consoleOutput]);
+    }, [consoleOutput]);
+
 
     const handleConnect = () => {
         localStorage.setItem('xp_host', host);
@@ -44,29 +40,9 @@ const SimulatorPluginUI: React.FC = () => {
         connectToSimulator(host, parseInt(port, 10));
     };
 
-    const handleSendMessage = async () => {
-        if (!selectedMission || !chatInput.trim() || isSending) return;
-        
-        const msg = chatInput.trim().toUpperCase();
-        setIsSending(true);
-        setChatInput('');
-
-        try {
-            await addLog('Crew', msg, selectedMission.callsign);
-            const response = await sendCrewMessageToAgent(selectedMission.missionId, msg);
-            if (response) {
-                await addLog('Dispatcher', response.responseText);
-            }
-        } catch (e) {
-            toast.error("Comms failure.");
-        } finally {
-            setIsSending(false);
-        }
-    };
-
     if (!isAuthenticated) {
         return (
-            <Card className="h-[600px] border-4 border-[#00ff41]/20 bg-black text-[#00ff41] font-mono shadow-2xl flex flex-col items-center justify-center p-12 space-y-8">
+            <Card className="h-[700px] border-4 border-[#00ff41]/20 bg-black text-[#00ff41] font-mono shadow-2xl flex flex-col items-center justify-center p-12 space-y-8">
                 <div className="relative">
                     <Power className="w-20 h-20 animate-pulse text-[#00ff41]" />
                     <div className="absolute inset-0 bg-[#00ff41]/20 blur-2xl rounded-full" />
@@ -116,8 +92,8 @@ const SimulatorPluginUI: React.FC = () => {
             <Tabs defaultValue="missions" className="flex-grow flex flex-col min-h-0">
                 <TabsList className="bg-black/60 border border-[#00ff41]/10 p-1 shrink-0 h-12">
                     <TabsTrigger value="missions" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Flights</TabsTrigger>
-                    <TabsTrigger value="briefing" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Briefing</TabsTrigger>
-                    <TabsTrigger value="comms" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Comms</TabsTrigger>
+                    <TabsTrigger value="tactical" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Tactical Map</TabsTrigger>
+                    <TabsTrigger value="radio" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Radio Comms</TabsTrigger>
                     <TabsTrigger value="console" className="flex-grow text-[10px] uppercase font-black data-[state=active]:bg-[#00ff41] data-[state=active]:text-black">Status</TabsTrigger>
                 </TabsList>
 
@@ -161,37 +137,37 @@ const SimulatorPluginUI: React.FC = () => {
                         )}
                     </TabsContent>
 
-                    <TabsContent value="briefing" className="m-0 flex-grow p-6 overflow-y-auto space-y-8">
+                    <TabsContent value="tactical" className="m-0 flex-grow p-0 overflow-hidden">
                         {selectedMission ? (
-                            <>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {[
-                                        { label: 'Fuel State', val: `${selectedMission.tracking?.fuelRemainingLbs || 0} LB`, icon: Fuel },
-                                        { label: 'Air Time', val: `${selectedMission.tracking?.timeEnrouteMinutes || 0} MIN`, icon: Clock },
-                                        { label: 'Flight Phase', val: selectedMission.tracking?.phase || 'DISPATCH', icon: Activity },
-                                        { label: 'LZ Ident', val: (selectedMission.destination as any)?.faaIdentifier || 'SCENE', icon: MapPin },
-                                    ].map((stat, i) => (
-                                        <div key={i} className="flex items-center space-x-3 bg-black/40 p-3 rounded-xl border border-[#00ff41]/10">
-                                            <stat.icon className="w-4 h-4 opacity-60" />
-                                            <div className="flex flex-col">
-                                                <span className="text-[7px] opacity-40 uppercase font-black">{stat.label}</span>
-                                                <span className="text-[10px] font-bold uppercase">{stat.val}</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 h-full">
+                                <div className="lg:col-span-9 h-full">
+                                    <SimulatorMapPanel mission={selectedMission as any} />
                                 </div>
-                                
-                                <Button 
-                                    onClick={isSyncing ? stopSync : startSync}
-                                    disabled={!isConnected}
-                                    className={cn(
-                                        "w-full h-16 text-lg font-black italic uppercase transition-all rounded-2xl shadow-xl",
-                                        isSyncing ? "bg-red-600 text-white animate-pulse" : "bg-[#00ff41] text-black"
-                                    )}
-                                >
-                                    {isSyncing ? 'DISCONNECT TELEMETRY' : 'ENGAGE TACTICAL LINK'}
-                                </Button>
-                            </>
+                                <div className="lg:col-span-3 p-4 space-y-4 overflow-y-auto">
+                                    <Button 
+                                        onClick={isSyncing ? stopSync : startSync}
+                                        disabled={!isConnected}
+                                        className={cn(
+                                            "w-full h-12 text-sm font-black italic uppercase transition-all rounded-xl shadow-xl",
+                                            isSyncing ? "bg-red-600 text-white animate-pulse" : "bg-[#00ff41] text-black"
+                                        )}
+                                    >
+                                        {isSyncing ? 'DISCONNECT TELEMETRY' : 'ENGAGE TACTICAL LINK'}
+                                    </Button>
+                                    <div className="space-y-1">
+                                        <p className="text-[8px] opacity-40 uppercase tracking-widest">Aircraft</p>
+                                        <p className="text-sm font-bold">{selectedMission.helicopter.registration} ({selectedMission.helicopter.model})</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[8px] opacity-40 uppercase tracking-widest">Route</p>
+                                        <p className="text-sm font-bold">{selectedMission.origin.name} to {selectedMission.destination.name}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[8px] opacity-40 uppercase tracking-widest">Patient</p>
+                                        <p className="text-sm font-bold">{selectedMission.patientAge}Y {selectedMission.patientGender}</p>
+                                    </div>
+                                </div>
+                            </div>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center opacity-20 italic space-y-4">
                                 <Navigation className="w-16 h-16" />
@@ -200,28 +176,8 @@ const SimulatorPluginUI: React.FC = () => {
                         )}
                     </TabsContent>
 
-                    <TabsContent value="comms" className="m-0 flex-grow flex flex-col overflow-hidden">
-                        <ScrollArea className="flex-grow min-h-0" ref={scrollRef}>
-                            <div className="p-6 space-y-6">
-                                {logs.map((log) => (
-                                    <div key={log.id} className="animate-in fade-in slide-in-from-bottom-2">
-                                        <div className="flex justify-between items-center text-[7px] mb-1 opacity-40 font-black">
-                                            <span className="uppercase">{log.sender === 'Crew' ? (log.callsign || 'PILOT') : log.sender}</span>
-                                            <span>{new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}Z</span>
-                                        </div>
-                                        <div className={cn("p-3 rounded-xl border-l-4 text-xs leading-relaxed", log.sender === 'Dispatcher' ? "bg-[#00ff41]/10 border-[#00ff41]" : "bg-white/5 border-white/20")}>
-                                            {log.message}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                        <div className="p-4 bg-black/60 border-t border-[#00ff41]/10 flex space-x-3">
-                            <Input className="bg-zinc-900/50 border border-[#00ff41]/20 rounded-lg px-4 text-xs flex-grow text-[#00ff41] placeholder:text-[#00ff41]/20 uppercase focus:outline-none focus:border-[#00ff41]" placeholder="MANUAL_RADIO_CMD..." value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} disabled={!selectedMission || isSending} />
-                            <Button onClick={handleSendMessage} size="icon" className="h-10 w-10 bg-[#00ff41] text-black rounded-lg" disabled={!selectedMission || isSending}>
-                                {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                            </Button>
-                        </div>
+                    <TabsContent value="radio" className="m-0 flex-grow flex flex-col overflow-hidden">
+                        <SimulatorChat mission={selectedMission} />
                     </TabsContent>
 
                     <TabsContent value="console" className="m-0 flex-grow bg-black/40 p-6 font-mono text-[10px] text-[#00ff41] overflow-hidden flex flex-col">
