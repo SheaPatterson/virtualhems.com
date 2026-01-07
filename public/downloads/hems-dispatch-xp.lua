@@ -33,7 +33,7 @@ function send_hems_telemetry()
         fuelRemainingLbs = fuel_kg * 2.20462
     }
 
-    -- 2. Construct JSON String (Manual to avoid dependencies)
+    -- 2. Construct JSON String
     local json_payload = string.format(
         '{"latitude":%f,"longitude":%f,"altitudeFt":%d,"groundSpeedKts":%d,"headingDeg":%d,"fuelRemainingLbs":%d}',
         data.latitude, data.longitude, data.altitudeFt, data.groundSpeedKts, data.headingDeg, data.fuelRemainingLbs
@@ -51,10 +51,6 @@ function send_hems_telemetry()
         source = ltn12.source.string(json_payload),
         sink = ltn12.sink.table(response_body)
     })
-
-    if code ~= 200 then
-        -- Silent fail in sim to prevent stutter, check Bridge console for issues
-    end
 end
 
 do_often("send_hems_telemetry()")
