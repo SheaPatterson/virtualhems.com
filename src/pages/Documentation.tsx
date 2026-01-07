@@ -64,35 +64,32 @@ const Documentation = () => {
       <section className="space-y-6">
           <div className="flex items-center space-x-3">
               <ShieldAlert className="w-6 h-6 text-orange-500" />
-              <h2 className="text-2xl font-black uppercase italic tracking-tight">macOS Execution Guide</h2>
+              <h2 className="text-2xl font-black uppercase italic tracking-tight">macOS: Fix Access Privileges</h2>
           </div>
           <div className="space-y-4">
               <div className="p-6 bg-muted/30 border-2 rounded-2xl space-y-6">
-                  <div>
-                      <h4 className="font-bold text-sm mb-1 uppercase text-primary">Option A: The "Open Anyway" Button</h4>
+                  <div className="space-y-2">
+                      <h4 className="font-bold text-sm uppercase text-primary">The Quick Terminal Fix</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                          1. Double-click the <code className="font-mono">.command</code> file and let it fail.<br />
-                          2. Open <strong>System Settings</strong> (or Preferences) → <strong>Privacy & Security</strong>.<br />
-                          3. Scroll down to the "Security" section. You will see a message saying the file was blocked.<br />
-                          4. Click <strong>Open Anyway</strong> and enter your Mac password.
+                          If you see an error about "appropriate access privileges," follow these steps:
                       </p>
+                      <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
+                          <li>Open the <strong>Terminal</strong> app (found in Applications/Utilities).</li>
+                          <li>Type <code className="bg-black text-[#00ff41] px-1 px-1 rounded">chmod +x </code> (make sure there is a space at the end).</li>
+                          <li>Drag the <code className="font-mono text-foreground">LAUNCH_BRIDGE.command</code> file directly into the Terminal window.</li>
+                          <li>Press <strong>Enter</strong>. You can now double-click the file to launch the Bridge.</li>
+                      </ol>
                   </div>
                   
                   <Separator />
 
                   <div>
-                      <h4 className="font-bold text-sm mb-1 uppercase text-primary">Option B: Remove Quarantine Flag (Terminal)</h4>
-                      <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                          If the system still refuses to open the file, you must manually strip the download security flag using Terminal:
+                      <h4 className="font-bold text-sm mb-1 uppercase text-primary">Bypassing the Security Warning</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                          If macOS says the file is from an unidentified developer:<br />
+                          1. <strong>Right-click</strong> the file and select <strong>Open</strong>.<br />
+                          2. Click <strong>Open</strong> again in the security pop-up.
                       </p>
-                      <div className="bg-black p-4 rounded-lg font-mono text-[10px] text-[#00ff41] border border-[#00ff41]/20 space-y-2">
-                          <p># 1. Navigate to the Bridge folder</p>
-                          <p>cd ~/Desktop/hems-dispatch</p>
-                          <p># 2. Strip the Apple quarantine flag</p>
-                          <p>xattr -d com.apple.quarantine LAUNCH_BRIDGE.command</p>
-                          <p># 3. Add execution permission</p>
-                          <p>chmod +x LAUNCH_BRIDGE.command</p>
-                      </div>
                   </div>
               </div>
           </div>

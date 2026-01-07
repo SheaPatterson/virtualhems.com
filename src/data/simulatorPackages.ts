@@ -42,8 +42,8 @@ export const simulatorPackages: SimulatorPackage[] = [
         installationSteps: [
             'Extract the .zip to your desktop.',
             'Windows: Double-click "LAUNCH_BRIDGE.bat".',
-            'Mac: Right-Click "LAUNCH_BRIDGE.command" and select "Open".',
-            'Note: Use "chmod +x" in terminal if you get a permission error.',
+            'Mac: Run "chmod +x LAUNCH_BRIDGE.command" in Terminal to fix permissions.',
+            'Mac: Right-Click the file and select "Open" to bypass security.',
         ],
     },
     {
