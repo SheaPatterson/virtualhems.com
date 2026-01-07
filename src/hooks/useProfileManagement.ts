@@ -4,7 +4,7 @@ import { useAuth } from '@/components/AuthGuard';
 import { Profile } from './useProfiles';
 import { toast } from 'sonner';
 import { createStripeCheckoutSession } from '@/integrations/stripe/api';
-import { stripePromise } from '@/integrations/stripe/client';
+import { getStripe } from '@/integrations/stripe/client';
 
 interface ProfileUpdateInput extends Partial<Omit<Profile, 'id' | 'updated_at' | 'api_key'>> {}
 
@@ -79,14 +79,19 @@ const initiateStripeCheckout = async () => {
         return;
     }
 
+    const stripe = await getStripe();
+    if (!stripe) {
+        toast.error("Stripe Secure Terminal failed to load. Please check your internet connection or disable ad-blockers.");
+        return;
+    }
+
     const sessionId = await createStripeCheckoutSession();
     if (!sessionId) return;
 
-    const stripe = await stripePromise;
-    if (stripe) {
-        await (stripe as any).redirectToCheckout({ sessionId });
-    } else {
-        throw new Error("Stripe failed to load.");
+    // Use type assertion to bypass strict type check for the redirect method
+    const { error } = await (stripe as any).redirectToCheckout({ sessionId });
+    if (error) {
+        throw new Error(error.message);
     }
 };
 
