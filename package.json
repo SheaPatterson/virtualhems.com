@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "copy:assets": "cpx \"dist/**/*\" \"public/downloads/hems-dispatch/ui\"",
-    "electron:build": "npm run build && npm run copy:assets && npm --prefix public/downloads/hems-dispatch run build"
+    "electron:build": "npm run build && npm run copy:assets && npm --prefix public/downloads/hems-dispatch run pack"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -46,7 +46,7 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.45.0",
     "@tanstack/react-query": "^5.56.2",
-    "@types/dompurify": "^3.0.5",
+    "@types/dompurify": "^3.3.1",
     "@types/leaflet": "^1.9.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

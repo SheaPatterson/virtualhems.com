@@ -6,9 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build": "npm run build:mac && npm run build:win"
+    "build": "electron-builder --dir",
+    "pack": "electron-builder"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -21,13 +20,16 @@
   "build": {
     "appId": "com.hems.tacticalbridge",
     "productName": "HEMS Tactical Bridge",
+    "copyright": "Copyright © 2024 SRP Consulting Group, LLC.",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
-      "**/*",
-      "!node_modules",
-      "node_modules/**/*"
+      "main.js",
+      "package.json",
+      "server.js",
+      "ui/**/*"
     ],
     "mac": {
       "target": "dmg",
