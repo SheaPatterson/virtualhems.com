@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HEMS TACTICAL COMMAND</title>
+    <title>HEMS Tactical Bridge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,800;1,800&display=swap');
-        body { font-family: 'JetBrains+Mono', monospace; background: #050505; color: #00ff41; overflow: hidden; height: 100vh; }
+        body { font-family: 'JetBrains Mono', monospace; background: #050505; color: #00ff41; overflow: hidden; height: 100vh; }
         .crt::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none; }
         #map { background: #000; filter: invert(100%) hue-rotate(180deg) brightness(0.5) contrast(1.2); }
         .hud-card { background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); }
         .scroll-hide::-webkit-scrollbar { display: none; }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #000; color: #00ff41; border: 1px solid #00ff41; }
     </style>
 </head>
 <body class="crt flex flex-col p-4 space-y-4">
@@ -26,12 +27,12 @@
             </div>
             <div>
                 <h1 class="text-sm font-black italic uppercase tracking-tighter">Tactical Bridge v5.2</h1>
-                <p id="mission-id" class="text-[8px] opacity-60">AWAITING_MISSION_UPLINK</p>
+                <p id="mission-id-display" class="text-[8px] opacity-60">AWAITING_MISSION_UPLINK</p>
             </div>
         </div>
         <div class="flex space-x-4">
             <div id="sim-status" class="text-[9px] font-black uppercase px-3 py-1 border border-red-500 text-red-500 italic">LINK_OFFLINE</div>
-            <div class="text-[9px] font-black uppercase px-3 py-1 border border-[#00ff41]/30 text-[#00ff41]/50 italic">NODE_ALPHA</div>
+            <div id="cloud-status" class="text-[9px] font-black uppercase px-3 py-1 border border-[#00ff41]/30 text-[#00ff41]/50 italic">CLOUD_SYNC</div>
         </div>
     </header>
 
@@ -59,10 +60,35 @@
             </div>
         </div>
 
-        <!-- Right: Comms & Logistics -->
+        <!-- Right: Mission Status & Comms -->
         <div class="col-span-4 flex flex-col space-y-4 min-h-0">
+            
+            <!-- Mission Status Card -->
+            <div id="mission-status-card" class="hud-card rounded-2xl p-4 shrink-0 space-y-3">
+                <p class="text-[10px] opacity-40 uppercase tracking-widest">Active Mission</p>
+                <h2 id="callsign" class="text-2xl font-black italic text-white">-- STANDBY --</h2>
+                <div class="grid grid-cols-2 gap-3 text-[10px] font-bold uppercase">
+                    <div class="space-y-1">
+                        <p class="opacity-40">Phase</p>
+                        <p id="phase" class="text-primary">DISPATCH</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="opacity-40">Destination</p>
+                        <p id="destination">N/A</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="opacity-40">Dist to Target</p>
+                        <p id="dist-to-target">--- NM</p>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="opacity-40">ETE</p>
+                        <p id="ete">--- MIN</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Comms Terminal -->
-            <div class="flex-grow hud-col flex flex-col hud-card rounded-2xl overflow-hidden">
+            <div class="flex-grow hud-col flex flex-col hud-card rounded-2xl overflow-hidden min-h-[200px]">
                 <div class="p-2 border-b border-[#00ff41]/10 bg-[#00ff41]/5 text-[9px] font-black uppercase flex justify-between">
                     <span>Radio Frequency: 123.025</span>
                     <span class="animate-pulse text-red-500">REC ●</span>
@@ -77,10 +103,10 @@
             </div>
 
             <!-- Fuel & Logistics -->
-            <div class="h-32 hud-card rounded-2xl p-4 flex flex-col justify-center">
+            <div class="h-24 hud-card rounded-2xl p-4 flex flex-col justify-center shrink-0">
                 <p class="text-[10px] opacity-40 uppercase mb-1">Fuel State</p>
                 <div class="flex items-baseline space-x-2">
-                    <span id="fuel" class="text-4xl font-black italic">---</span>
+                    <span id="fuel" class="text-3xl font-black italic">---</span>
                     <span class="text-xs font-bold opacity-40">LBS</span>
                 </div>
                 <div class="w-full h-1 bg-[#00ff41]/10 rounded-full mt-3 overflow-hidden">
@@ -103,16 +129,20 @@
         
         let marker = L.circleMarker([0, 0], { radius: 6, color: '#00ff41', weight: 2, fillOpacity: 0.8 }).addTo(map);
         let path = L.polyline([], { color: '#00ff41', weight: 1, opacity: 0.3, dashArray: '5, 10' }).addTo(map);
+        let lastPosition = [0, 0];
+        let isFirstPacket = true;
 
         async function poll() {
             const start = Date.now();
             try {
-                const res = await fetch('/api/status');
+                const res = await fetch('http://localhost:8080/api/status');
                 const data = await res.json();
                 document.getElementById('ping').innerText = Date.now() - start;
 
                 const statusEl = document.getElementById('sim-status');
-                if (data.simConnected) {
+                const isSimConnected = data.simConnected;
+                
+                if (isSimConnected) {
                     statusEl.innerText = "SIM_LINK_ACTIVE";
                     statusEl.className = "text-[9px] font-black uppercase px-3 py-1 border border-[#00ff41] text-[#00ff41] italic animate-pulse";
                 } else {
@@ -120,21 +150,64 @@
                     statusEl.className = "text-[9px] font-black uppercase px-3 py-1 border border-red-500 text-red-500 italic";
                 }
 
+                // Update Telemetry Data
                 if (data.telemetry) {
                     const t = data.telemetry;
-                    document.getElementById('alt').innerText = Math.round(t.altitudeFt);
+                    document.getElementById('alt').innerText = Math.round(t.altitudeFt).toLocaleString();
                     document.getElementById('spd').innerText = Math.round(t.groundSpeedKts);
                     document.getElementById('hdg').innerText = Math.round(t.headingDeg);
-                    document.getElementById('fuel').innerText = Math.round(t.fuelRemainingLbs);
+                    document.getElementById('fuel').innerText = Math.round(t.fuelRemainingLbs).toLocaleString();
                     document.getElementById('lat').innerText = t.latitude.toFixed(4);
                     document.getElementById('lon').innerText = t.longitude.toFixed(4);
 
+                    // Update Fuel Bar
+                    const maxFuel = 1500; // Mock max fuel capacity
+                    const fuelPercent = Math.min(100, (t.fuelRemainingLbs / maxFuel) * 100);
+                    const fuelBar = document.getElementById('fuel-bar');
+                    fuelBar.style.width = `${fuelPercent}%`;
+                    fuelBar.style.backgroundColor = fuelPercent < 20 ? '#ef4444' : '#00ff41';
+
+                    // Update Map
                     const pos = [t.latitude, t.longitude];
                     marker.setLatLng(pos);
                     path.addLatLng(pos);
-                    map.panTo(pos);
+                    
+                    if (isFirstPacket) {
+                        map.setView(pos, 12);
+                        isFirstPacket = false;
+                    } else {
+                        map.panTo(pos, { animate: true, duration: 1.0 });
+                    }
+                    lastPosition = pos;
                 }
-            } catch (e) { console.error("Bridge Connection Lost"); }
+
+                // Update Mission State
+                const missionCard = document.getElementById('mission-status-card');
+                if (data.missionState) {
+                    const m = data.missionState;
+                    document.getElementById('mission-id-display').innerText = `MISSION ID: ${m.missionId}`;
+                    document.getElementById('callsign').innerText = m.callsign;
+                    document.getElementById('phase').innerText = m.phase.replace('_', ' ');
+                    document.getElementById('destination').innerText = m.destination;
+                    document.getElementById('dist-to-target').innerText = `${m.distToTargetNM.toFixed(1)} NM`;
+                    document.getElementById('ete').innerText = `${m.eteMinutes} MIN`;
+                    missionCard.style.opacity = 1;
+                } else {
+                    document.getElementById('mission-id-display').innerText = 'AWAITING_MISSION_UPLINK';
+                    document.getElementById('callsign').innerText = '-- STANDBY --';
+                    document.getElementById('phase').innerText = 'DISPATCH';
+                    document.getElementById('destination').innerText = 'N/A';
+                    document.getElementById('dist-to-target').innerText = '--- NM';
+                    document.getElementById('ete').innerText = '--- MIN';
+                    missionCard.style.opacity = 0.5;
+                }
+
+            } catch (e) { 
+                document.getElementById('ping').innerText = 'ERR';
+                document.getElementById('sim-status').innerText = "BRIDGE_OFFLINE";
+                document.getElementById('sim-status').className = "text-[9px] font-black uppercase px-3 py-1 border border-red-500 text-red-500 italic";
+                console.error("Bridge Connection Lost"); 
+            }
         }
 
         async function sendMessage() {
@@ -148,7 +221,8 @@
             box.scrollTop = box.scrollHeight;
 
             try {
-                const res = await fetch('/api/chat', {
+                // Note: This currently calls the local server, which mocks the response.
+                const res = await fetch('http://localhost:8080/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text })

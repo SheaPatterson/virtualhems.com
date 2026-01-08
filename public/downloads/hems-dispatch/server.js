@@ -10,7 +10,7 @@ app.use(express.static(path.join(__dirname, 'ui')));
 
 let currentTelemetry = null;
 let lastHeartbeat = 0;
-let currentMissionId = null;
+let currentMissionId = 'HEMS-4220'; // Mock active mission ID
 
 // 1. RECEIVE TELEMETRY FROM X-PLANE
 app.post('/telemetry', (req, res) => {
@@ -27,10 +27,19 @@ app.post('/telemetry', (req, res) => {
 
 // 2. STATUS ENDPOINT FOR UI
 app.get('/api/status', (req, res) => {
+    const mockMissionState = {
+        missionId: currentMissionId,
+        callsign: 'MEDEVAC42',
+        phase: 'ENROUTE_PICKUP',
+        destination: 'UPMC PRESBY',
+        distToTargetNM: 15.5,
+        eteMinutes: 8,
+    };
+
     res.json({ 
         simConnected: (Date.now() - lastHeartbeat) < 5000,
         telemetry: currentTelemetry,
-        missionId: currentMissionId
+        missionState: currentMissionId ? mockMissionState : null
     });
 });
 
