@@ -81,6 +81,7 @@ export interface MissionPlannerProps {
     hospitals: Hospital[];
     bases: HemsBase[];
     helicopters: Helicopter[];
+    initialState?: Partial<MissionFormState>; // Added for pre-filling
 }
 
 export interface StepProps extends MissionPlannerProps {

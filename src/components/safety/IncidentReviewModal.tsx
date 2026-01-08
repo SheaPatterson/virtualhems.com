@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle2, ShieldAlert, FileText, ClipboardCheck } from 'lucide-react';
+import { Loader2, CheckCircle2, ShieldAlert, FileText, ClipboardCheck, Zap } from 'lucide-react';
 import { IncidentReport } from '@/hooks/useIncidentReports';
 import { Separator } from '@/components/ui/separator';
 
@@ -18,6 +19,7 @@ interface IncidentReviewModalProps {
 }
 
 const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenChange, incident, onResolve, isResolving }) => {
+    const navigate = useNavigate();
     const [resolution, setResolution] = useState('');
 
     const handleResolve = async () => {
@@ -30,6 +32,20 @@ const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenC
         } catch (e) {
             // Error handled by parent/hook
         }
+    };
+
+    const handleLaunchMission = () => {
+        if (!incident) return;
+        
+        // Map incident data to Mission Planner state
+        const preFilledState = {
+            patientDetails: incident.description,
+            missionType: incident.report_type === 'Medical' ? 'Scene Call' as const : 'Hospital Transfer' as const,
+            // Logic could be expanded here to extract coordinates if present in description
+        };
+
+        onOpenChange(false);
+        navigate('/generate', { state: preFilledState });
     };
 
     if (!incident) return null;
@@ -46,9 +62,19 @@ const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenC
 
                 <div className="space-y-6 py-4">
                     <div className="p-4 bg-muted/50 rounded-xl border space-y-2">
-                        <p className="text-[10px] font-black uppercase text-muted-foreground flex items-center">
-                            <FileText className="w-3 h-3 mr-1" /> Initial Hazard Account
-                        </p>
+                        <div className="flex justify-between items-center">
+                            <p className="text-[10px] font-black uppercase text-muted-foreground flex items-center">
+                                <FileText className="w-3 h-3 mr-1" /> Initial Hazard Account
+                            </p>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleLaunchMission}
+                                className="h-7 text-[9px] font-black uppercase bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary"
+                            >
+                                <Zap className="w-3 h-3 mr-1" /> Launch Tactical Dispatch
+                            </Button>
+                        </div>
                         <p className="text-sm leading-relaxed italic">"{incident.description}"</p>
                     </div>
 

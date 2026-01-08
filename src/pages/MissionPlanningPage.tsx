@@ -1,11 +1,17 @@
+import { useLocation } from 'react-router-dom';
 import { Loader2, Zap } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useHemsData } from '@/hooks/useHemsData';
 import MissionPlanner from "@/components/mission-planning/MissionPlanner";
 import PageHeader from '@/components/PageHeader';
+import { MissionFormState } from '@/components/mission-planning/types';
 
 const MissionPlanningPage = () => {
   const { hospitals, bases, helicopters, isLoading, isError } = useHemsData();
+  const location = useLocation();
+  
+  // Extract pre-filled state if navigating from an incident
+  const preFilledState = location.state as Partial<MissionFormState> | undefined;
 
   if (isLoading) {
     return (
@@ -23,8 +29,7 @@ const MissionPlanningPage = () => {
                 <CardContent className="pt-6 text-center space-y-4">
                     <p className="text-destructive font-bold text-lg">Operational Data Link Failure</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                        Failed to load essential HEMS data (Hospitals, Bases, or Helicopters). 
-                        Please ensure the system database is populated and RLS policies allow read access for authenticated personnel.
+                        Failed to load essential HEMS data. Please ensure the system database is populated and RLS policies allow read access.
                     </p>
                 </CardContent>
             </Card>
@@ -44,6 +49,7 @@ const MissionPlanningPage = () => {
             hospitals={hospitals}
             bases={bases}
             helicopters={helicopters}
+            initialState={preFilledState}
         />
     </div>
   );

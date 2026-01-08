@@ -16,10 +16,16 @@ import Step3Patient from './Step3Patient.tsx';
 import Step4FlightCalculation from './Step4FlightCalculation.tsx';
 import { MissionFormState, initialMissionState, MissionPlannerProps, MOCK_SCENE_LOCATION } from './types.ts';
 
-const MissionPlanner: React.FC<MissionPlannerProps> = ({ hospitals, bases, helicopters }) => {
+const MissionPlanner: React.FC<MissionPlannerProps> = ({ hospitals, bases, helicopters, initialState }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [formState, setFormState] = useState<MissionFormState>(initialMissionState);
+  
+  // Initialize state with defaults, then override with any provided initial data
+  const [formState, setFormState] = useState<MissionFormState>({
+      ...initialMissionState,
+      ...initialState
+  });
+
   const [currentStep, setCurrentStep] = useState('details');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,7 +69,6 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ hospitals, bases, helic
         return;
     }
 
-    // Set callsign to Base Name
     const callsign = base.name.toUpperCase();
 
     let pickup: any;
@@ -81,7 +86,6 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ hospitals, bases, helic
         const coreCrew = crew as CoreCrewMember[];
         const report = generateMissionReport(missionType, base, selectedHelicopter, coreCrew, base, pickup, patientDetails, medicalResponse);
 
-        // Override with full circuit data
         report.callsign = callsign;
         report.waypoints = waypoints as CoreWaypoint[];
         report.destination = destination;
@@ -111,7 +115,6 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ hospitals, bases, helic
         const { data, error } = await supabase.from('missions').insert([missionData]).select('mission_id').single();
         if (error) throw error;
 
-        // PLAY DISPATCH TONES
         playDispatchTones();
 
         toast.success(`Mission ${report.missionId} dispatched! Switching to live tracking...`);
