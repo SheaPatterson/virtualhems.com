@@ -1,0 +1,33 @@
+{
+  "productName": "HEMS Tactical Bridge",
+  "appId": "com.hems.tacticalbridge",
+  "directories": {
+    "output": "dist-desktop"
+  },
+  "files": [
+    "dist",
+    "dist-electron"
+  ],
+  "win": {
+    "target": ["nsis", "msi"],
+    "icon": "public/favicon.ico"
+  },
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.productivity",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "electron/entitlements.mac.plist",
+    "entitlementsInherit": "electron/entitlements.mac.plist"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "shortcutName": "HEMS Bridge"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "hems-ops",
+    "repo": "tactical-bridge"
+  }
+}

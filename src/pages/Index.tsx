@@ -8,6 +8,7 @@ import {
     ShieldCheck, MessageSquare, Hospital, Check, X 
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthGuard';
+import DesktopDownload from '@/components/DesktopDownload';
 
 const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; description: string; badge?: string }> = ({ icon, title, description, badge }) => (
     <Card className="flex flex-col items-start text-left p-8 h-full border-primary/10 hover:border-primary/40 transition-all hover:shadow-2xl bg-card/50 backdrop-blur-md relative overflow-hidden group">
@@ -59,7 +60,7 @@ const Index = () => {
                                 className="w-48 h-48 md:w-64 md:h-64 object-contain transition-all duration-1000 group-hover:scale-105" 
                             />
                             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest border-4 border-background whitespace-nowrap">
-                                Operational Environment v4.2
+                                Operational Environment v5.2
                             </div>
                         </div>
                     </div>
@@ -107,6 +108,7 @@ const Index = () => {
                 </header>
             </div>
 
+            {/* Platform Feature Bar */}
             <div className="w-full bg-muted/30 border-y border-border/50 py-12 mb-10 overflow-hidden">
                 <div className="container mx-auto px-4">
                     <p className="text-center text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-8">
@@ -124,6 +126,11 @@ const Index = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Native Desktop Download Section */}
+            <section className="container mx-auto px-4 py-16">
+                <DesktopDownload />
+            </section>
 
             <section className="container mx-auto px-4 py-24">
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -244,7 +251,6 @@ const Index = () => {
                 </div>
             </section>
 
-            {/* New Subscription Section */}
             <section className="container mx-auto px-4 py-24 border-t border-border/50">
                 <div className="text-center mb-16 space-y-4">
                     <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px]">Access Tiers</p>
