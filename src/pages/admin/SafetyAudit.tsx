@@ -10,7 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import { cn } from '@/lib/utils';
 
 const AdminSafetyAudit = () => {
-    const { reports, isLoading } = useIncidentReports();
+    const { reports, isLoading, resolveReport, isResolving } = useIncidentReports();
     const [selectedIncident, setSelectedIncident] = useState<IncidentReport | null>(null);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
 
@@ -24,6 +24,19 @@ const AdminSafetyAudit = () => {
         setSelectedIncident(incident);
         setIsReviewOpen(true);
     };
+    
+    const handleResolve = async (id: string, resolution: string) => {
+        await resolveReport({ id, resolution });
+    };
+
+    const getSeverityColor = (severity: IncidentReport['severity']) => {
+        switch (severity) {
+          case 'Critical': return 'bg-red-600 text-white';
+          case 'High': return 'bg-orange-600 text-white';
+          case 'Medium': return 'bg-yellow-500 text-black';
+          default: return 'bg-blue-600 text-white';
+        }
+    };
 
     return (
         <div className="container mx-auto p-4 md:p-8 space-y-8 max-w-7xl">
@@ -34,9 +47,9 @@ const AdminSafetyAudit = () => {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-red-500/5 border-red-500/20">
+                <Card className="bg-destructive/5 border-destructive/20">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600 flex items-center">
+                        <CardTitle className="text-xs font-black uppercase tracking-widest text-destructive flex items-center">
                             <AlertTriangle className="w-4 h-4 mr-2" /> UNRESOLVED HAZARDS
                         </CardTitle>
                     </CardHeader>
@@ -84,8 +97,9 @@ const AdminSafetyAudit = () => {
                                 <TableRow>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Type</TableHead>
+                                    <TableHead>Severity</TableHead>
                                     <TableHead>Mission</TableHead>
-                                    <TableHead>Account</TableHead>
+                                    <TableHead className="max-w-xs">Executive Summary</TableHead>
                                     <TableHead className="text-right pr-6">Review</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -103,6 +117,11 @@ const AdminSafetyAudit = () => {
                                         <TableCell>
                                             <p className="text-sm font-bold">{r.report_type}</p>
                                             <p className="text-[10px] text-muted-foreground font-mono">{new Date(r.created_at).toLocaleDateString()}</p>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={cn("font-black uppercase tracking-tighter text-[10px] px-3", getSeverityColor(r.severity))}>
+                                                {r.severity}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell className="font-mono font-black text-primary">{r.mission_id}</TableCell>
                                         <TableCell className="max-w-xs truncate italic text-xs text-muted-foreground">"{r.description}"</TableCell>
@@ -125,11 +144,15 @@ const AdminSafetyAudit = () => {
                 </CardContent>
             </Card>
 
-            <IncidentReviewModal 
-                open={isReviewOpen}
-                onOpenChange={setIsReviewOpen}
-                incident={selectedIncident}
-            />
+            {selectedIncident && (
+                <IncidentReviewModal 
+                    open={isReviewOpen}
+                    onOpenChange={setIsReviewOpen}
+                    incident={selectedIncident}
+                    onResolve={handleResolve}
+                    isResolving={isResolving}
+                />
+            )}
         </div>
     );
 };

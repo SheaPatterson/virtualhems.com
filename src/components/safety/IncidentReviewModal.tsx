@@ -6,24 +6,30 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2, CheckCircle2, ShieldAlert, FileText, ClipboardCheck } from 'lucide-react';
-import { useIncidentReports, IncidentReport } from '@/hooks/useIncidentReports';
+import { IncidentReport } from '@/hooks/useIncidentReports';
 import { Separator } from '@/components/ui/separator';
 
 interface IncidentReviewModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     incident: IncidentReport | null;
+    onResolve: (id: string, resolution: string) => Promise<void>;
+    isResolving: boolean;
 }
 
-const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenChange, incident }) => {
+const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenChange, incident, onResolve, isResolving }) => {
     const [resolution, setResolution] = useState('');
-    const { resolveReport, isResolving } = useIncidentReports();
 
     const handleResolve = async () => {
         if (!incident || !resolution.trim()) return;
-        await resolveReport({ id: incident.id, resolution });
-        onOpenChange(false);
-        setResolution('');
+        
+        try {
+            await onResolve(incident.id, resolution);
+            onOpenChange(false);
+            setResolution('');
+        } catch (e) {
+            // Error handled by parent/hook
+        }
     };
 
     if (!incident) return null;
@@ -59,20 +65,28 @@ const IncidentReviewModal: React.FC<IncidentReviewModalProps> = ({ open, onOpenC
                             placeholder="Detail training assigned, equipment repaired, or protocol changes implemented..."
                             rows={6}
                             className="rounded-xl border-2 focus-visible:ring-primary"
+                            disabled={isResolving || incident.status === 'Resolved'}
                         />
                     </div>
                 </div>
 
                 <DialogFooter className="bg-muted/30 -mx-6 -mb-6 p-6">
                     <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isResolving} className="font-bold">ABORT REVIEW</Button>
-                    <Button 
-                        onClick={handleResolve} 
-                        disabled={isResolving || !resolution.trim()}
-                        className="bg-green-600 hover:bg-green-700 text-white font-black italic uppercase shadow-lg h-12 px-8 rounded-xl"
-                    >
-                        {isResolving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                        CLOSE CASE
-                    </Button>
+                    {incident.status === 'Open' && (
+                        <Button 
+                            onClick={handleResolve} 
+                            disabled={isResolving || !resolution.trim()}
+                            className="bg-green-600 hover:bg-green-700 text-white font-black italic uppercase shadow-lg h-12 px-8 rounded-xl"
+                        >
+                            {isResolving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                            CLOSE CASE
+                        </Button>
+                    )}
+                    {incident.status === 'Resolved' && (
+                        <Button disabled className="bg-green-600/50 text-white font-black italic uppercase shadow-lg h-12 px-8 rounded-xl">
+                            <CheckCircle2 className="w-4 h-4 mr-2" /> CASE CLOSED
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
