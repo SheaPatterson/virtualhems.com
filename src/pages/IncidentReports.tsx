@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShieldAlert, PlusCircle, Loader2, AlertTriangle, CheckCircle2, History, Filter } from 'lucide-react';
+import { ShieldAlert, PlusCircle, Loader2, AlertTriangle, CheckCircle2, History, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIncidentReports, IncidentReport } from '@/hooks/useIncidentReports';
 import { Badge } from '@/components/ui/badge';
 import IncidentReportForm from '@/components/safety/IncidentReportForm';
 import { cn } from '@/lib/utils';
 import PageHeader from '@/components/PageHeader';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Link } from 'react-router-dom';
 
 const IncidentReports = () => {
   const { reports, isLoading, isError } = useIncidentReports();
+  const { isAdmin } = useUserRole();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const getSeverityColor = (severity: IncidentReport['severity']) => {
@@ -84,9 +87,13 @@ const IncidentReports = () => {
                     <CardTitle className="text-xl">Safety Event Registry</CardTitle>
                     <CardDescription>Comprehensive log of regional operational occurrences.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <Filter className="w-3 h-3 mr-1" /> Filter Data
-                </Button>
+                {isAdmin && (
+                    <Button asChild variant="default" size="sm" className="h-10 px-4 font-bold uppercase text-[10px] tracking-widest">
+                        <Link to="/admin/safety-audit">
+                            <Eye className="w-3 h-3 mr-1" /> HQ Audit Terminal
+                        </Link>
+                    </Button>
+                )}
             </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -111,6 +118,7 @@ const IncidentReports = () => {
                     <TableHead>Severity</TableHead>
                     <TableHead>Mission Ref</TableHead>
                     <TableHead className="max-w-md">Executive Summary</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -133,6 +141,14 @@ const IncidentReports = () => {
                       </TableCell>
                       <TableCell className="max-w-md">
                         <p className="text-sm line-clamp-2 leading-relaxed">{report.description}</p>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                            "font-black italic text-[9px] px-3",
+                            report.status === 'Open' ? "bg-red-600 animate-pulse" : "bg-green-600"
+                        )}>
+                            {report.status.toUpperCase()}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
