@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, LayoutDashboard, Zap, History, FileText, Users, MapPin, Download, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, HeartPulse, DollarSign, Book, Lock } from 'lucide-react';
+import { Menu, LogOut, LayoutDashboard, Zap, History, FileText, Users, MapPin, Download, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, HeartPulse, DollarSign, Book, Lock, ShieldAlert } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from '@/integrations/supabase/auth';
@@ -70,6 +70,7 @@ const adminSections: NavSection[] = [
         items: [
             { href: '/admin/overview', label: 'Admin Hub', icon: Settings },
             { href: '/admin/live-ops', label: 'Live Operations', icon: Activity },
+            { href: '/admin/safety-audit', label: 'Safety Audit', icon: ShieldAlert },
             { href: '/admin/notams', label: 'NOTAM Broadcast', icon: Megaphone },
             { href: '/admin/permission', label: 'RBAC Security', icon: Shield },
         ],
