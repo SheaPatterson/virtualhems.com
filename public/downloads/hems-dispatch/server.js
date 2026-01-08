@@ -50,6 +50,10 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.listen(port, () => {
+    // Send a message back to the Electron main process upon successful startup
+    if (process.send) {
+        process.send('Server started successfully on port 8080.');
+    }
     console.log(`\n========================================`);
     console.log(`[SUCCESS] HEMS COMMAND CENTER IS ONLINE`);
     console.log(`[LOCAL] http://localhost:${port}`);
