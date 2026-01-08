@@ -1,20 +1,27 @@
 "use client";
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { StepProps, Location } from './types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Hospital as HospitalIcon, ArrowRight, Activity, Zap, Crosshair, HeartPulse, Plane } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { MapPin, Hospital as HospitalIcon, ArrowRight, Activity, Zap, Crosshair, HeartPulse, Plane, Wind, Map as MapIcon, Loader2 } from 'lucide-react';
 import { HemsBase, Hospital } from '@/data/hemsData';
 import { toast } from 'sonner';
 import SceneLocationSelector from './SceneLocationSelector';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useWeather } from '@/hooks/useWeather';
+import { Badge } from '@/components/ui/badge';
 
 const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext, hospitals, bases, helicopters }) => {
     const { missionType, selectedBaseId, selectedHelicopter, selectedDestinationId, selectedOriginId, selectedFinalHospitalId, selectedSceneLocation } = formState;
+    const [w3wInput, setW3wInput] = useState('');
+
+    const selectedBase = useMemo(() => bases.find(b => b.id === selectedBaseId), [selectedBaseId, bases]);
+    const { data: weather, isLoading: isWeatherLoading } = useWeather(selectedBase?.faaIdentifier || undefined);
 
     const traumaCenters = useMemo(() => hospitals.filter(h => h.isTraumaCenter), [hospitals]);
 
@@ -26,13 +33,28 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
                 const aircraft = helicopters.find(h => h.id === base.helicopterId);
                 if (aircraft && selectedHelicopter?.id !== aircraft.id) {
                     updateFormState({ selectedHelicopter: aircraft });
-                    toast.info(`Assigned ${aircraft.registration} for ${base.name}.`);
                 }
             } else {
                 updateFormState({ selectedHelicopter: null });
             }
         }
     }, [selectedBaseId, bases, helicopters, updateFormState, selectedHelicopter?.id]);
+
+    const handleW3WSubmit = () => {
+        if (!w3wInput.includes('.')) {
+            toast.error("Invalid W3W format. Use 'word.word.word'");
+            return;
+        }
+        // Simulated conversion - in production, this calls the W3W API
+        const mockLocation: Location = {
+            name: `W3W: ///${w3wInput}`,
+            latitude: selectedBase?.latitude || 40.44,
+            longitude: (selectedBase?.longitude || -79.99) + 0.1,
+            faaIdentifier: 'SCENE',
+        };
+        updateFormState({ selectedSceneLocation: mockLocation });
+        toast.success(`Coordinates resolved for ///${w3wInput}`);
+    };
 
     const handleNextStep = () => {
         if (!selectedBaseId) {
@@ -41,7 +63,7 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
         }
 
         if (!selectedHelicopter) {
-            toast.error("Operational Error: No aircraft assigned to this base. Contact maintenance.");
+            toast.error("Operational Error: No aircraft assigned to this base.");
             return;
         }
 
@@ -50,7 +72,7 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
                 toast.error("Required: Origin and Destination facilities.");
                 return;
             }
-        } else { // Scene Call
+        } else {
             if (!selectedFinalHospitalId) {
                 toast.error("Required: Receiving Trauma Center.");
                 return;
@@ -118,11 +140,11 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
 
             <Separator className="opacity-50" />
 
-            {/* Locked Base & Asset Assignment */}
+            {/* Base & Weather Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center">
-                        <MapPin className="w-3 h-3 text-primary mr-2" /> Dispatch Base
+                        <MapPin className="w-3 h-3 text-primary mr-2" /> Dispatch Base & Weather
                     </Label>
                     <Select
                         value={selectedBaseId || ''}
@@ -139,27 +161,43 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
                             ))}
                         </SelectContent>
                     </Select>
+                    
+                    {selectedBase && (
+                        <div className="p-3 bg-muted/30 rounded-xl border border-dashed flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                {isWeatherLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                                ) : (
+                                    <Wind className={cn("w-4 h-4", weather?.condition === 'VFR' ? "text-green-500" : "text-amber-500")} />
+                                )}
+                                <span className="text-[10px] font-bold uppercase">{weather?.raw || 'Fetching METAR...'}</span>
+                            </div>
+                            <Badge className={cn(
+                                "text-[8px] font-black",
+                                weather?.condition === 'VFR' ? "bg-green-600" : "bg-amber-500"
+                            )}>
+                                {weather?.condition || 'SCANNING'}
+                            </Badge>
+                        </div>
+                    )}
                 </div>
 
                 <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center">
-                        <Plane className="w-3 h-3 text-primary mr-2" /> Assigned Asset (Stationary)
+                        <Plane className="w-3 h-3 text-primary mr-2" /> Assigned Asset
                     </Label>
                     <div className="h-12 border-2 rounded-md bg-muted/30 flex items-center px-4 font-black italic text-primary">
                         <Zap className="w-4 h-4 mr-2" />
                         {selectedHelicopter ? `${selectedHelicopter.registration} (${selectedHelicopter.model})` : 'Awaiting Base Selection...'}
                     </div>
-                    {selectedBaseId && !selectedHelicopter && (
-                        <p className="text-[10px] text-destructive font-bold animate-pulse">WARNING: No aircraft assigned to this station.</p>
-                    )}
                 </div>
             </div>
 
             <Separator className="opacity-50" />
 
-            {/* Route Logic */}
+            {/* Smart Location & Route */}
             <Card className="border-2 border-primary/5 bg-primary/[0.02]">
-                <CardContent className="p-6">
+                <CardContent className="p-6 space-y-6">
                     {missionType === "Hospital Transfer" ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderHospitalSelect('selectedOriginId', 'Origin Facility', selectedOriginId, hospitals, "Pickup Hospital", <MapPin className="w-3 h-3" />)}
@@ -167,18 +205,38 @@ const Step1Details: React.FC<StepProps> = ({ formState, updateFormState, onNext,
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            <div className="flex flex-col md:flex-row md:items-end gap-6">
-                                <div className="flex-grow space-y-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Scene Designation</Label>
-                                    <div className="h-12 border-2 rounded-md bg-background flex items-center px-4 font-bold text-primary italic">
-                                        <Crosshair className="w-4 h-4 mr-2" />
-                                        {selectedSceneLocation?.name || 'Awaiting Pin Drop...'}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center">
+                                        <MapIcon className="w-3 h-3 mr-2" /> What3Words Entry
+                                    </Label>
+                                    <div className="flex space-x-2">
+                                        <div className="relative flex-grow">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold">///</span>
+                                            <Input 
+                                                value={w3wInput}
+                                                onChange={(e) => setW3wInput(e.target.value)}
+                                                placeholder="filled.count.soap"
+                                                className="pl-10 h-12 font-mono font-bold"
+                                            />
+                                        </div>
+                                        <Button onClick={handleW3WSubmit} variant="secondary" className="h-12 px-6">Apply</Button>
                                     </div>
                                 </div>
-                                <SceneLocationSelector 
-                                    currentLocation={selectedSceneLocation}
-                                    onLocationSelect={(l: Location) => updateFormState({ selectedSceneLocation: l })}
-                                />
+                                
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Scene Designation</Label>
+                                    <div className="flex space-x-2">
+                                        <div className="h-12 border-2 rounded-md bg-background flex items-center px-4 font-bold text-primary italic flex-grow">
+                                            <Crosshair className="w-4 h-4 mr-2" />
+                                            <span className="truncate">{selectedSceneLocation?.name || 'Awaiting Pin Drop...'}</span>
+                                        </div>
+                                        <SceneLocationSelector 
+                                            currentLocation={selectedSceneLocation}
+                                            onLocationSelect={(l: Location) => updateFormState({ selectedSceneLocation: l })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             
                             {renderHospitalSelect(

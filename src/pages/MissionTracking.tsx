@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { MissionReport as IMissionReport } from '@/data/hemsData';
-import { Fuel, Loader2, Wind, Zap, CheckCircle2, QrCode, TrendingUp, TrendingDown, Minus, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Fuel, Loader2, Wind, CheckCircle2, QrCode, TrendingUp, TrendingDown, ChevronDown, ArrowLeft, Clock } from 'lucide-react';
 import DispatcherChat from '@/components/DispatcherChat';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import MissionDebriefModal from '@/components/mission-planning/MissionDebriefMod
 import WeatherRadarOverlay from '@/components/dashboard/WeatherRadar';
 import MissionChecklistComponent from '@/components/mission-planning/MissionChecklist';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { calculateDistance } from '@/utils/flightCalculations';
 
 const HudItem: React.FC<{ label: string; value: string | number; unit?: string; icon: React.ElementType, status?: 'normal' | 'warn' | 'alert', trend?: number }> = ({ label, value, unit, icon: Icon, status = 'normal', trend }) => (
     <div className={cn(
@@ -42,7 +43,7 @@ const HudItem: React.FC<{ label: string; value: string | number; unit?: string; 
                     <span className="ml-2">
                         {trend > 0 ? <TrendingUp className="w-4 h-4 text-green-500" /> : 
                          trend < 0 ? <TrendingDown className="w-4 h-4 text-red-500" /> : 
-                         <Minus className="w-4 h-4 opacity-20" />}
+                         <div className="w-4 h-4" />}
                     </span>
                 )}
             </div>
@@ -112,6 +113,20 @@ const MissionTracking = () => {
         navigate(`/report/${id}`);
     };
 
+    // Calculate Dynamic ETA
+    const liveEta = useMemo(() => {
+        if (!report?.tracking || !report?.destination) return '---';
+        const t = report.tracking;
+        const d = report.destination;
+        const distToDest = calculateDistance(t.latitude, t.longitude, d.latitude, d.longitude);
+        const groundSpeed = t.groundSpeedKts || 120; // Fallback to 120 kts
+        
+        if (groundSpeed < 10) return 'STA'; // Standing at target
+        
+        const minutes = Math.round((distToDest / groundSpeed) * 60);
+        return minutes;
+    }, [report]);
+
     if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
     if (!report) return <Navigate to="/dashboard" replace />;
 
@@ -150,16 +165,25 @@ const MissionTracking = () => {
             <div className="flex-grow min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4">
                 <div className="lg:col-span-3 flex flex-col space-y-4 overflow-y-auto">
                     <Collapsible defaultOpen>
-                        <CollapsibleTrigger className="w-full">
+                        <CollapsibleTrigger className="w-full text-left">
                             <div className="p-3 bg-black/40 rounded-t-xl border border-b-0 border-white/10 flex justify-between items-center">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-primary">Mission Briefing</h3>
                                 <ChevronDown className="w-4 h-4 text-white/30" />
                             </div>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="p-4 bg-black/20 rounded-b-xl border border-t-0 border-white/10 space-y-4">
-                            <p><strong className="text-primary/80">Type:</strong> {report.type}</p>
-                            <p><strong className="text-primary/80">Origin:</strong> {report.origin.name}</p>
-                            <p><strong className="text-primary/80">Destination:</strong> {report.destination.name}</p>
+                        <CollapsibleContent className="p-4 bg-black/20 rounded-b-xl border border-t-0 border-white/10 space-y-4 text-sm">
+                            <div className="space-y-1">
+                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Mission Profile</p>
+                                <p className="font-bold italic">{report.type}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Origin Terminal</p>
+                                <p className="font-bold italic">{report.origin.name}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Primary Target</p>
+                                <p className="font-bold italic">{report.destination.name}</p>
+                            </div>
                         </CollapsibleContent>
                     </Collapsible>
                     <MissionChecklistComponent />
@@ -179,8 +203,8 @@ const MissionTracking = () => {
 
                 <div className="lg:col-span-3 flex flex-col space-y-4">
                     <div className="space-y-2">
+                        <HudItem label="Automated ETA" value={liveEta} unit="MIN" icon={Clock} status={typeof liveEta === 'number' && liveEta < 2 ? 'alert' : 'normal'} />
                         <HudItem label="Altitude" value={report.tracking?.altitudeFt?.toLocaleString() || '---'} unit="FT" icon={Wind} />
-                        <HudItem label="Ground Speed" value={report.tracking?.groundSpeedKts || '---'} unit="KTS" icon={Zap} />
                         <HudItem label="Fuel State" value={report.tracking?.fuelRemainingLbs?.toLocaleString() || '---'} unit="LB" icon={Fuel} status={fuelStatus} />
                     </div>
                     <div className="flex-grow min-h-[200px]">
