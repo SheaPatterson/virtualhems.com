@@ -212,7 +212,7 @@ const MissionTracking = () => {
                     </div>
                 </div>
             </div>
-            <MissionDebriefModal open={isDebriefOpen} onOpenChange={setIsDebriefOpen} onConfirm={handleConfirmDebrief} />
+            {report && <MissionDebriefModal open={isDebriefOpen} onOpenChange={setIsDebriefOpen} report={report} onConfirm={handleConfirmDebrief} />}
         </div>
     );
 };

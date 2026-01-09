@@ -5,18 +5,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { FileText, ClipboardCheck, Loader2, CheckCircle2, Trophy, AlertTriangle, Zap } from 'lucide-react';
+import { FileText, ClipboardCheck, Loader2, Trophy, Zap, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import { callTacticalAnalyst } from '@/integrations/dispatch/api';
+import { MissionReport } from '@/data/hemsData';
 
 interface MissionDebriefModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    report: MissionReport;
     onConfirm: (notes: string, score: number, summary: any) => Promise<void>;
 }
 
-const MissionDebriefModal: React.FC<MissionDebriefModalProps> = ({ open, onOpenChange, onConfirm }) => {
+const MissionDebriefModal: React.FC<MissionDebriefModalProps> = ({ open, onOpenChange, report, onConfirm }) => {
     const [notes, setNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [aiFeedback, setAiFeedback] = useState<any>(null);
 
     const handleFinalize = async () => {
         if (!notes.trim()) {
@@ -24,34 +29,43 @@ const MissionDebriefModal: React.FC<MissionDebriefModalProps> = ({ open, onOpenC
             return;
         }
 
-        setIsSubmitting(true);
-        try {
-            // Mock AAR Scoring Logic
-            const performanceScore = Math.floor(Math.random() * 20) + 80; // 80-100 range for active pilots
-            const flightSummary = {
-                vfr_compliance: true,
-                fuel_efficiency: "Nominal",
-                comm_clarity: "High"
-            };
+        setIsAnalyzing(true);
+        const audit = await callTacticalAnalyst('REVIEW_FLIGHT', {
+            tracking: report.tracking,
+            notes: notes,
+            helicopter: report.helicopter.registration
+        });
 
-            await onConfirm(notes, performanceScore, flightSummary);
+        if (audit) {
+            setAiFeedback(audit);
+            setIsAnalyzing(false);
+            setIsSubmitting(true);
+            
+            // Short delay to show the AI's calculation before closing
+            setTimeout(async () => {
+                await onConfirm(notes, audit.score, { 
+                    fuel_efficiency: audit.efficiencyRating,
+                    ai_critique: audit.criticalCritique
+                });
+                onOpenChange(false);
+                setIsSubmitting(false);
+            }, 3000);
+        } else {
+            toast.error("AI Audit link failed. Using manual override.");
+            await onConfirm(notes, 100, { fuel_efficiency: "MANUAL_BYPASS" });
             onOpenChange(false);
-        } catch (error) {
-            toast.error("Failed to finalize report.");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl border-t-8 border-primary">
+            <DialogContent className="sm:max-w-[700px] border-t-8 border-primary">
                 <DialogHeader>
                     <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter flex items-center">
                         <ClipboardCheck className="w-8 h-8 mr-3 text-primary" /> After Action Review (AAR)
                     </DialogTitle>
                     <DialogDescription className="text-base font-medium">
-                        Log final mission narrative and perform performance validation.
+                        Log final mission narrative for the AI Tactical Audit.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -73,24 +87,30 @@ const MissionDebriefModal: React.FC<MissionDebriefModalProps> = ({ open, onOpenC
                     </div>
 
                     <div className="space-y-6">
-                        <div className="p-6 bg-primary/5 border-2 border-primary/20 rounded-[2rem] shadow-inner text-center">
+                        <div className="p-6 bg-primary/5 border-2 border-primary/20 rounded-[2rem] shadow-inner text-center relative overflow-hidden">
+                            {(isAnalyzing || isSubmitting) && (
+                                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 flex flex-col items-center justify-center space-y-2">
+                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-white">Neural Analysis Active...</p>
+                                </div>
+                            )}
                             <Trophy className="w-10 h-10 text-primary mx-auto mb-2" />
-                            <h4 className="text-sm font-black uppercase tracking-widest text-primary/80">Projected Performance</h4>
-                            <p className="text-5xl font-mono font-black italic text-primary">--%</p>
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-tighter mt-2">Calculated upon finalization</p>
+                            <h4 className="text-sm font-black uppercase tracking-widest text-primary/80">Flight Performance</h4>
+                            <p className="text-5xl font-mono font-black italic text-primary">
+                                {aiFeedback ? `${aiFeedback.score}%` : '--%'}
+                            </p>
+                            {aiFeedback && (
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-tighter mt-4 italic font-bold">
+                                    {aiFeedback.criticalCritique}
+                                </p>
+                            )}
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex items-start space-x-3 p-3 bg-muted/50 rounded-xl border border-border/50">
                                 <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                                 <p className="text-[10px] text-muted-foreground leading-tight">
-                                    <strong>Data Integrity:</strong> Finalizing will lock the GPS breadcrumbs and comms logs for regional audit.
-                                </p>
-                            </div>
-                            <div className="flex items-start space-x-3 p-3 bg-muted/50 rounded-xl border border-border/50">
-                                <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-                                <p className="text-[10px] text-muted-foreground leading-tight">
-                                    <strong>Risk Assessment:</strong> Ensure any incidents or near-misses are detailed in the narrative above.
+                                    <strong>AI Performance Audit:</strong> The Tactical Analyst evaluates your fuel efficiency, phase timing, and narrative clarity.
                                 </p>
                             </div>
                         </div>
@@ -98,14 +118,14 @@ const MissionDebriefModal: React.FC<MissionDebriefModalProps> = ({ open, onOpenC
                 </div>
 
                 <DialogFooter className="bg-muted/30 -mx-6 -mb-6 p-6">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="font-bold">ABORT</Button>
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isAnalyzing || isSubmitting} className="font-bold">ABORT</Button>
                     <Button 
                         onClick={handleFinalize} 
-                        disabled={isSubmitting}
+                        disabled={isAnalyzing || isSubmitting || !notes.trim()}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground font-black italic uppercase shadow-xl h-14 px-12 rounded-2xl text-lg transition-transform hover:scale-105"
                     >
-                        {isSubmitting ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
-                        FINALIZE SORTIE
+                        {isAnalyzing || isSubmitting ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Activity className="w-5 h-5 mr-2" />}
+                        INITIALIZE AUDIT
                     </Button>
                 </DialogFooter>
             </DialogContent>
