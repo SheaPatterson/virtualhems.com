@@ -1,4 +1,4 @@
-import { Settings, Loader2, Info, ShieldAlert, Zap, Globe } from 'lucide-react';
+import { Settings, Loader2, Info, ShieldAlert, Zap, Server } from 'lucide-react';
 import { useConfig, ConfigItem } from '@/hooks/useConfig';
 import ConfigForm from '@/components/admin/ConfigForm';
 import { Separator } from '@/components/ui/separator';
@@ -6,9 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const DEFAULT_SETTINGS: ConfigItem[] = [
     { key: 'systemName', value: 'HEMS SIMULATION', description: 'The official name of the application.', updated_at: new Date().toISOString() },
+    { key: 'vpsEndpoint', value: 'http://your-vps-ip:3000', description: 'Real-time VPS Tactical Relay address.', updated_at: new Date().toISOString() },
     { key: 'fuelReserveMinutes', value: '20', description: 'Required fuel reserve time for Go/No-Go calculation (minutes).', updated_at: new Date().toISOString() },
     { key: 'maxPatientWeightLbs', value: '350', description: 'Maximum patient weight allowed for transport (Lbs).', updated_at: new Date().toISOString() },
-    { key: 'vfrMinimumVisibilitySM', value: '3', description: 'Minimum visibility required for VFR (Statute Miles).', updated_at: new Date().toISOString() },
     { key: 'supportEmail', value: 'ops@hemssim.com', description: 'Primary contact email for system support.', updated_at: new Date().toISOString() },
 ];
 
@@ -20,18 +20,18 @@ const AdminConfiguration = () => {
 
   const sections = [
     {
+        id: 'infra',
+        title: "Tactical Infrastructure",
+        desc: "Neural network and VPS connectivity parameters.",
+        icon: Server,
+        items: displayConfig.filter(c => ['vpsEndpoint', 'systemName'].includes(c.key))
+    },
+    {
         id: 'ops',
         title: "Flight Safety Thresholds",
         desc: "Core parameters dictating Go/No-Go logic.",
         icon: Zap,
-        items: displayConfig.filter(c => ['fuelReserveMinutes', 'vfrMinimumVisibilitySM', 'maxPatientWeightLbs'].includes(c.key))
-    },
-    {
-        id: 'identity',
-        title: "Branding & Contact",
-        desc: "Control system-wide identity and support links.",
-        icon: Globe,
-        items: displayConfig.filter(c => ['systemName', 'supportEmail'].includes(c.key))
+        items: displayConfig.filter(c => ['fuelReserveMinutes', 'maxPatientWeightLbs'].includes(c.key))
     }
   ];
 
@@ -56,7 +56,7 @@ const AdminConfiguration = () => {
         <Info className="h-4 w-4" />
         <AlertTitle className="font-bold uppercase tracking-tighter">Impact Warning</AlertTitle>
         <AlertDescription className="text-sm font-medium">
-          Changes to safety thresholds are applied instantly to the Mission Planner. Incorrect values may ground all active units.
+          Changes to safety thresholds or VPS endpoints are applied instantly to all active units and the Bridge client.
         </AlertDescription>
       </Alert>
 

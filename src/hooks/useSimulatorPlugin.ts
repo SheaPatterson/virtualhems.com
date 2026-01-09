@@ -7,7 +7,7 @@ import { determineFlightPhase } from '@/plugins/xplane/utils';
 import { sendTelemetryUpdate } from '@/integrations/simulator/api';
 import { sendCrewMessageToAgent, fetchDispatchAudio } from '@/integrations/dispatch/api';
 
-const TELEMETRY_INTERVAL_MS = 4000;
+const TELEMETRY_INTERVAL_MS = 1000; // VPS allows 1s updates (down from 4s)
 
 export const useSimulatorPlugin = () => {
     const [apiKey, setApiKey] = useState(localStorage.getItem('hems_api_key') || '');
@@ -45,7 +45,7 @@ export const useSimulatorPlugin = () => {
         if (apiKey.length < 10) return;
         localStorage.setItem('hems_api_key', apiKey);
         setIsAuthenticated(true);
-        addToConsole("LINK_ESTABLISHED: HEMS_GATEWAY_v4.2");
+        addToConsole("LINK_ESTABLISHED: HEMS_GATEWAY_v5.2");
         toast.success("Tactical Link Authenticated.");
     };
 
@@ -75,7 +75,7 @@ export const useSimulatorPlugin = () => {
     const startSync = () => {
         if (!selectedMission || !isConnected || isSyncing) return;
         setIsSyncing(true);
-        addToConsole("TELEMETRY_STREAM: ENGAGED");
+        addToConsole("VPS_REALTIME_RELAY: ENGAGED");
 
         lastReachedWaypointIndex.current = 0;
 
@@ -84,7 +84,6 @@ export const useSimulatorPlugin = () => {
                 const telemetry = await getTelemetry();
                 const { newIndex, phase } = determineFlightPhase(telemetry.latitude, telemetry.longitude, selectedMission.waypoints, lastReachedWaypointIndex.current);
                 
-                // EVENT: Waypoint Reached - Trigger Proactive AI Call
                 if (newIndex > lastReachedWaypointIndex.current) {
                     const wp = selectedMission.waypoints[newIndex];
                     addToConsole(`AUTO_DISPATCH: Reached ${wp.name}`);
@@ -97,12 +96,14 @@ export const useSimulatorPlugin = () => {
                     ...telemetry,
                     mission_id: selectedMission.missionId,
                     phase,
+                    timestamp: Date.now(),
                     timeEnrouteMinutes: (selectedMission.tracking.timeEnrouteMinutes || 0) + (TELEMETRY_INTERVAL_MS / 60000),
                 };
 
+                // VPS Update (Direct Telemetry)
                 const success = await sendTelemetryUpdate(payload);
                 if (success) {
-                    addToConsole(`TX_PACKET: ${phase} | ${telemetry.fuelRemainingLbs}lbs`);
+                    addToConsole(`TX_PACKET [REALTIME]: ${phase} | ${telemetry.fuelRemainingLbs}lbs`);
                 }
             } catch (e) {
                 stopSync();
@@ -115,7 +116,7 @@ export const useSimulatorPlugin = () => {
     const stopSync = () => {
         if (telemetryInterval.current) clearInterval(telemetryInterval.current);
         setIsSyncing(false);
-        addToConsole("TELEMETRY_STREAM: DISENGAGED");
+        addToConsole("VPS_REALTIME_RELAY: DISENGAGED");
     };
 
     useEffect(() => {
