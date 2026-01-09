@@ -84,7 +84,7 @@ export const useSimulatorPlugin = () => {
                 const telemetry = await getTelemetry();
                 const { newIndex, phase } = determineFlightPhase(telemetry.latitude, telemetry.longitude, selectedMission.waypoints, lastReachedWaypointIndex.current);
                 
-                // EVENT: Waypoint Reached
+                // EVENT: Waypoint Reached - Trigger Proactive AI Call
                 if (newIndex > lastReachedWaypointIndex.current) {
                     const wp = selectedMission.waypoints[newIndex];
                     addToConsole(`AUTO_DISPATCH: Reached ${wp.name}`);

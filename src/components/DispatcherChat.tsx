@@ -14,6 +14,7 @@ interface DispatcherChatProps {
     missionReport: IMissionReport | null;
 }
 
+// Audio assets for immersion
 const staticAudio = new Audio('https://orhfcrrydmgxradibbqb.supabase.co/storage/v1/object/public/operational-assets/assets/radio_static.mp3'); 
 staticAudio.volume = 0.2;
 
@@ -36,15 +37,18 @@ const DispatcherChat: React.FC<DispatcherChatProps> = ({ missionReport }) => {
             audioRef.current = new Audio(url);
         }
 
+        // Play intro squelch
         staticAudio.currentTime = 0;
         staticAudio.play();
 
         audioRef.current.onloadeddata = () => {
+            // Cut static slightly after voice starts
             setTimeout(() => staticAudio.pause(), 400); 
             audioRef.current?.play();
         };
 
         audioRef.current.onended = () => {
+            // Outro squelch
             staticAudio.currentTime = 0;
             staticAudio.play();
             setTimeout(() => {
@@ -94,11 +98,13 @@ const DispatcherChat: React.FC<DispatcherChatProps> = ({ missionReport }) => {
         setInput('');
         setIsProcessing(true);
 
+        // Call the Gemini Dispatch Agent
         const response = await sendCrewMessageToAgent(missionReport.missionId, text);
         
         setIsProcessing(false);
         if (response) {
             await addLog('Dispatcher', response.responseText);
+            // Fetch and play TTS audio
             const audioUrl = await fetchDispatchAudio(response.responseText);
             if (audioUrl) playAudioFromUrl(audioUrl);
         }

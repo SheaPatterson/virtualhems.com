@@ -53,7 +53,7 @@ app.post('/api/chat', async (req, res) => {
     
     // Simulating dispatcher acknowledgment for local mode
     // You can extend this to call the Supabase Edge Function directly
-    const mockResponse = "DISPATCH COPIES. STANDING BY FOR PROGRESS REPORT.";
+    const mockResponse = "DISPATCH COPIES. STANDBY FOR PROGRESS REPORT.";
     
     res.json({ response: mockResponse });
 });
