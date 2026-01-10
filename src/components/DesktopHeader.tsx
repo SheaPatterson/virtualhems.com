@@ -33,7 +33,7 @@ const DesktopHeader = () => {
       <div className="flex items-center space-x-3 no-drag">
         <Zap className="w-4 h-4 text-primary animate-pulse" />
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">
-          HEMS Tactical Bridge <span className="text-primary/50 ml-2">v2.4.0</span>
+          HEMS Tactical Bridge <span className="text-primary/50 ml-2">v5.2.0</span>
         </span>
       </div>
 

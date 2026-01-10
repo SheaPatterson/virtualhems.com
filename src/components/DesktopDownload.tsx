@@ -23,14 +23,14 @@ const DesktopDownload = () => {
               DOWNLOAD FOR {isMac ? 'MACOS' : 'WINDOWS'}
             </h3>
             <p className="text-sm text-muted-foreground font-medium">
-              v2.4.0-STABLE | Includes Auto-Update & System Tray Integration
+              v5.2.0-STABLE | Includes Auto-Update & System Tray Integration
             </p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           <Button asChild size="lg" className="h-16 px-10 text-lg font-black italic uppercase shadow-xl rounded-2xl w-full sm:w-auto">
-            <a href={`/downloads/hems-bridge-${isMac ? 'mac' : 'win'}.zip`} download>
+            <a href={`/downloads/hems-dispatch.zip`} download>
               <Download className="w-5 h-5 mr-2" /> GET INSTALLER
             </a>
           </Button>
