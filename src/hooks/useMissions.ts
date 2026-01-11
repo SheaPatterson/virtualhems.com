@@ -132,27 +132,54 @@ export const useActiveMissions = () => {
     return useQuery({
         queryKey: ['activeMissions'],
         queryFn: async () => {
-            const { data, error } = await supabase
+            // Fetch only the summary data
+            const { data: summaries, error: summaryError } = await supabase
+                .from('telemetry_summary')
+                .select('*');
+
+            if (summaryError) throw summaryError;
+
+            // Fetch the full mission details for the active missions found in the summary
+            const missionIds = summaries.map(s => s.mission_id);
+            
+            if (missionIds.length === 0) return [];
+
+            const { data: missions, error: missionError } = await supabase
                 .from('missions')
                 .select('*')
-                .eq('status', 'active')
-                .order('created_at', { ascending: false });
+                .in('mission_id', missionIds);
 
-            if (error) throw error;
+            if (missionError) throw missionError;
 
-            return (data || []).map((m: any) => ({
-                ...m,
-                missionId: m.mission_id,
-                type: m.mission_type,
-                hemsBase: m.hems_base,
-                helicopter: m.helicopter,
-                tracking: m.tracking,
-                origin: m.origin,
-                destination: m.destination,
-                status: m.status,
-                pilot_notes: m.pilot_notes,
-                user_id: m.user_id // Explicitly mapping user_id
-            })) as HistoricalMission[];
+            // Merge summary data into the full mission structure for compatibility
+            const summaryMap = new Map(summaries.map(s => [s.mission_id, s]));
+
+            return (missions || []).map((m: any) => {
+                const summary = summaryMap.get(m.mission_id);
+                
+                // Use the lightweight summary data for tracking/telemetry fields
+                const tracking = {
+                    ...m.tracking,
+                    latitude: summary?.latitude || m.tracking.latitude,
+                    longitude: summary?.longitude || m.tracking.longitude,
+                    phase: summary?.phase || m.tracking.phase,
+                    fuelRemainingLbs: summary?.fuel_remaining_lbs || m.tracking.fuelRemainingLbs,
+                };
+
+                return {
+                    ...m,
+                    missionId: m.mission_id,
+                    type: m.mission_type,
+                    hemsBase: m.hems_base,
+                    helicopter: m.helicopter,
+                    tracking: tracking,
+                    origin: m.origin,
+                    destination: m.destination,
+                    status: m.status,
+                    pilot_notes: m.pilot_notes,
+                    user_id: m.user_id
+                } as HistoricalMission;
+            });
         },
         refetchInterval: 10000, 
     });

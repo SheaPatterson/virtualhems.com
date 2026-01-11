@@ -7,7 +7,7 @@ import { getPhaseForWaypointIndex } from '@/utils/flightCalculations'; // Import
 const EDGE_FUNCTION_URL = "https://orhfcrrydmgxradibbqb.supabase.co/functions/v1/update-telemetry";
 const TELEMETRY_UPDATE_INTERVAL_MS = 4000; // Update every 4 seconds
 
-interface TelemetryData {
+export interface TelemetryData {
   timeEnrouteMinutes: number;
   fuelRemainingLbs: number;
   latitude: number;

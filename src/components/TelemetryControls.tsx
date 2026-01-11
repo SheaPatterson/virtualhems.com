@@ -3,25 +3,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, StopCircle, Satellite } from 'lucide-react';
 import { useTelemetrySimulator } from '@/hooks/useTelemetrySimulator';
-import { MissionReport as IMissionReport } from '@/data/hemsData';
+import { MissionReport as IMissionReport, TrackingData } from '@/data/hemsData'; // Import TrackingData
+import { TelemetryData } from '@/hooks/useTelemetrySimulator';
 
 interface TelemetryControlsProps {
     missionId: string;
     tracking: IMissionReport['tracking'];
     helicopterId: string;
     waypoints: IMissionReport['waypoints'];
-    onTrackingUpdate: (newTracking: IMissionReport['tracking']) => void;
+    onTrackingUpdate: (newTracking: TrackingData) => void; // Use full TrackingData
 }
 
 const TelemetryControls: React.FC<TelemetryControlsProps> = ({ missionId, tracking, helicopterId, waypoints, onTrackingUpdate }) => {
     
     const { isRunning, startSimulation, stopSimulation } = useTelemetrySimulator({
         missionId,
-        initialTracking: tracking as any,
+        initialTracking: tracking as TrackingData, // Ensure initial tracking is cast to full type
         helicopterId,
         waypoints,
-        onUpdateSuccess: (newTracking) => {
-            onTrackingUpdate(newTracking);
+        onUpdateSuccess: (newTracking: TelemetryData) => { // Fix TS2322 by matching the expected type
+            onTrackingUpdate(newTracking as TrackingData);
         }
     });
 

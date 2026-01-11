@@ -74,6 +74,11 @@ export const generateMissionReport = (
       fuelRemainingLbs: helicopter.fuelCapacityLbs,
       latitude: startPoint.latitude,
       longitude: startPoint.longitude,
+      phase: 'Dispatch', // Initial phase
+      altitude: 0,
+      heading: 0,
+      speedKnots: 0,
+      lastUpdate: Date.now(),
     },
     status: 'active', // Added missing status field
   };

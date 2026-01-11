@@ -3,7 +3,9 @@
 export type PatientGender = 'Male' | 'Female' | 'Other' | '';
 export type CrewRole = 'Pilot' | 'Flight Nurse' | 'Flight Paramedic' | 'Flight Mechanic';
 export type MissionType = "Scene Call" | "Hospital Transfer";
-export type FlightPhase = 'Dispatch' | 'Enroute Pickup' | 'At Scene/Transfer' | 'Enroute Dropoff' | 'At Hospital' | 'Returning to Base' | 'Complete';
+export type FlightPhase = 'Dispatch' | 'Enroute Pickup' | 'At Scene/Transfer' | 'Enroute Dropoff' | 'At Hospital' | 'Returning to Base' | 'Complete' | 'pre-flight' | 'en-route-outbound' | 'on-scene' | 'en-route-inbound' | 'landed' | 'standby';
+
+export const MISSION_PHASES: FlightPhase[] = ['Dispatch', 'Enroute Pickup', 'At Scene/Transfer', 'Enroute Dropoff', 'At Hospital', 'Returning to Base', 'Complete', 'pre-flight', 'en-route-outbound', 'on-scene', 'en-route-inbound', 'landed', 'standby'];
 
 export interface Hospital {
     id: string;
@@ -51,7 +53,12 @@ export interface TrackingData {
     groundSpeedKts?: number;
     headingDeg?: number;
     verticalSpeedFtMin?: number;
-    phase?: FlightPhase;
+    phase: FlightPhase; // Changed to non-optional
+    // Added for simulator compatibility
+    altitude: number;
+    heading: number;
+    speedKnots: number;
+    lastUpdate: number;
 }
 
 export interface MissionReport {
@@ -92,3 +99,12 @@ export interface HemsBase {
     assignedHelicopterRegistration: string | null; // For display
     createdAt: string;
 }
+
+// MOCK DATA FOR SIMULATOR HOOK COMPATIBILITY
+export const HEMS_BASES: HemsBase[] = [{
+    id: 'mock-base-1', name: 'Pittsburgh Base', location: 'Pittsburgh', contact: null, faaIdentifier: 'KAGC', latitude: 40.4406, longitude: -79.9959, helicopterId: 'mock-heli-1', assignedHelicopterRegistration: 'N420HE', createdAt: new Date().toISOString()
+}];
+
+export const HELICOPTERS: Helicopter[] = [{
+    id: 'mock-heli-1', model: 'EC135', registration: 'N420HE', fuelCapacityLbs: 1500, cruiseSpeedKts: 135, fuelBurnRateLbHr: 450, maintenanceStatus: 'FMC', createdAt: new Date().toISOString()
+}];
