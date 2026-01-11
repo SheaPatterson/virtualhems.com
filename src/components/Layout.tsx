@@ -2,7 +2,8 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 import { ThemeToggle } from './ThemeToggle';
-import GlobalSearch from './GlobalSearch'; // Import GlobalSearch
+import GlobalSearch from './GlobalSearch';
+import BrandedFooter from './BrandedFooter';
 
 const Layout = () => {
   return (
@@ -13,20 +14,21 @@ const Layout = () => {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 border-b flex items-center justify-between px-4 lg:px-8 shrink-0">
           <div className="flex items-center lg:hidden">
             <MobileNav />
           </div>
           <div className="flex-1 flex justify-end items-center space-x-4">
-            {/* Global Search Component */}
             <GlobalSearch />
-            {/* User profile or other header items could go here */}
             <ThemeToggle />
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <Outlet />
+        <main className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 p-4 lg:p-8">
+            <Outlet />
+          </div>
+          <BrandedFooter />
         </main>
       </div>
     </div>

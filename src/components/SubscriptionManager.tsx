@@ -1,14 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap, CheckCircle, XCircle, DollarSign } from 'lucide-react';
+import { Loader2, Heart, Coffee, ShieldCheck } from 'lucide-react';
 import { useProfileManagement } from '@/hooks/useProfileManagement';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 const SubscriptionManager: React.FC = () => {
-    const { profile, isLoading, initiateCustomerPortal, isInitiatingPortal } = useProfileManagement();
+    const { isLoading } = useProfileManagement();
     
     if (isLoading) {
         return (
@@ -20,55 +19,37 @@ const SubscriptionManager: React.FC = () => {
         );
     }
 
-    const isSubscribed = profile?.is_subscribed ?? false;
-
     return (
-        <Card className={isSubscribed ? "border-2 border-green-600/50 bg-green-600/5" : "border-2 border-destructive/50 bg-destructive/5"}>
-            <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center">
-                    <DollarSign className="w-5 h-5 mr-2 text-primary" /> Subscription Status
+        <Card className="border-2 border-primary/20 bg-primary/[0.02] shadow-xl overflow-hidden group">
+            <CardHeader className="pb-4 bg-primary/5 border-b border-primary/10">
+                <CardTitle className="text-sm font-black uppercase italic tracking-widest flex items-center text-primary">
+                    <ShieldCheck className="w-5 h-5 mr-2" /> Operational Status
                 </CardTitle>
-                <CardDescription>Manage your access to premium operational features.</CardDescription>
+                <CardDescription className="text-[10px] font-bold uppercase">All systems authorized for public use.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-background/50">
-                    <span className="font-bold">Access Level:</span>
-                    <Badge 
-                        className={isSubscribed ? "bg-green-600 hover:bg-green-700" : "bg-destructive hover:bg-destructive/90"}
-                    >
-                        {isSubscribed ? 'PREMIUM OPS-CENTER' : 'BASIC ACCESS'}
+            <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-2xl border-2 bg-background shadow-inner">
+                    <span className="font-black italic uppercase text-xs">Access Level:</span>
+                    <Badge className="bg-green-600 font-black italic px-4 h-6 border-none shadow-sm">
+                        FULL THEATER ACCESS
                     </Badge>
                 </div>
 
-                <div className="flex items-center space-x-2 text-sm">
-                    {isSubscribed ? (
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                    ) : (
-                        <XCircle className="w-4 h-4 text-destructive" />
-                    )}
-                    <span className={isSubscribed ? "text-green-600 font-medium" : "text-destructive font-medium"}>
-                        {isSubscribed ? 'Subscription is Active.' : 'Subscription is Inactive.'}
-                    </span>
-                </div>
-
-                {!isSubscribed && (
-                    <Button asChild variant="default" className={cn("w-full bg-primary hover:bg-primary/90")}>
-                        <Link to="/pricing">
-                            <Zap className="w-4 h-4 mr-2" /> Secure Access Now
+                <div className="p-4 bg-primary/5 rounded-2xl border-2 border-dashed border-primary/20 space-y-3">
+                    <p className="text-[10px] font-bold text-muted-foreground leading-relaxed italic">
+                        HEMS OPS-CENTER is a free, community-driven project. We rely on donations to keep our global telemetry relays and AI agents online.
+                    </p>
+                    <Button asChild className="w-full h-12 bg-primary text-primary-foreground font-black italic uppercase shadow-lg hover:scale-[1.02] transition-transform rounded-xl">
+                        <Link to="/support">
+                            <Coffee className="w-5 h-5 mr-2" /> Support the mission
                         </Link>
                     </Button>
-                )}
+                </div>
                 
-                {isSubscribed && (
-                    <Button 
-                        onClick={() => initiateCustomerPortal()} 
-                        disabled={isInitiatingPortal}
-                        variant="secondary" 
-                        className="w-full"
-                    >
-                        {isInitiatingPortal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : 'Manage Subscription'}
-                    </Button>
-                )}
+                <div className="flex items-center justify-center space-x-2 text-[8px] font-black uppercase text-primary/60 tracking-widest">
+                    <Heart className="w-3 h-3 fill-current" />
+                    <span>Built for the HEMS community</span>
+                </div>
             </CardContent>
         </Card>
     );

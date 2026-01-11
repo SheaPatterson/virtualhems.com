@@ -61,7 +61,7 @@ function Login() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <div className="p-2">
+                    <div className="p-2 auth-ui-wrapper">
                         <Auth
                             supabaseClient={supabase}
                             providers={[]} 
@@ -73,6 +73,12 @@ function Login() {
                                             brand: 'hsl(39 100% 50%)',
                                             brandAccent: 'hsl(39 100% 40%)',
                                             inputBackground: 'transparent',
+                                            inputText: theme === 'dark' ? '#ffffff' : '#000000',
+                                            inputLabelText: theme === 'dark' ? '#a1a1aa' : '#4b5563',
+                                            inputPlaceholder: theme === 'dark' ? '#71717a' : '#9ca3af',
+                                            inputBorder: 'rgba(255, 165, 0, 0.2)',
+                                            inputBorderHover: 'rgba(255, 165, 0, 0.5)',
+                                            inputBorderFocus: 'rgba(255, 165, 0, 0.8)',
                                         },
                                     },
                                 },

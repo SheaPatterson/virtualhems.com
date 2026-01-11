@@ -9,18 +9,18 @@ import { ThemeProvider } from "next-themes";
 // Layouts
 import Layout from "./components/Layout";
 import AdminGuard from "./components/AdminGuard";
-import SubscriptionGuard from "./components/SubscriptionGuard";
 
 // Public Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import Pricing from "./pages/Pricing";
+import Support from "./pages/Support";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccess";
 import Documentation from "./pages/Documentation";
 import Downloads from "./pages/Downloads";
 import FlightPlanning from "./pages/FlightPlanning";
 import Plugins from "./pages/Plugins";
 import DiscordCommunity from "./pages/DiscordCommunity";
+import DynamicPage from "./pages/DynamicPage"; // Reusable dynamic content page
 import NotFound from "./pages/NotFound";
 
 // Protected Pages
@@ -77,7 +77,7 @@ const App = () => (
               {/* Strictly Public Pages */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/support" element={<Support />} />
               <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
               
               {/* EFB View (Authenticated but no Layout) */}
@@ -93,6 +93,11 @@ const App = () => (
                 <Route path="/flight-planning" element={<FlightPlanning />} />
                 <Route path="/plugins" element={<Plugins />} />
                 <Route path="/discord" element={<DiscordCommunity />} />
+                
+                {/* Dynamic Content Pages (Legal, Whitepaper) */}
+                <Route path="/privacy" element={<DynamicPage />} />
+                <Route path="/terms" element={<DynamicPage />} />
+                <Route path="/whitepaper" element={<DynamicPage />} />
 
                 {/* Protected Ops Pages */}
                 <Route element={<AuthGuard />}>
@@ -111,13 +116,10 @@ const App = () => (
                   <Route path="/community" element={<Community />} />
                   <Route path="/user" element={<UserProfilePage />} />
 
-                  {/* Premium Operational Pages */}
-                  <Route element={<SubscriptionGuard />}>
-                    <Route path="/generate" element={<MissionPlanningPage />} />
-                    <Route path="/tracking/:id" element={<MissionTracking />} />
-                    <Route path="/live-tracking" element={<LiveTracking />} />
-                    <Route path="/simulator-client" element={<SimulatorClientPage />} />
-                  </Route>
+                  <Route path="/generate" element={<MissionPlanningPage />} />
+                  <Route path="/tracking/:id" element={<MissionTracking />} />
+                  <Route path="/live-tracking" element={<LiveTracking />} />
+                  <Route path="/simulator-client" element={<SimulatorClientPage />} />
 
                   {/* Admin Command Center */}
                   <Route element={<AdminGuard />}>

@@ -25,8 +25,38 @@ serve(async (req) => {
     let userPrompt = "";
 
     if (mode === 'GENERATE_SCENARIO') {
-        systemPrompt = "You are a HEMS Dispatch Coordinator. Generate a realistic medical emergency scenario for a helicopter transport. Return ONLY a JSON object with: patientAge (string), patientGender (Male/Female), patientWeightLbs (string), patientDetails (detailed clinical summary), and medicalResponse (interventions required).";
-        userPrompt = `Mission Type: ${context.type}. Target Region: ${context.region}.`;
+        // 1. Fetch a random base scenario from the database to ensure we use "uploaded" conditions
+        const { data: baseScenarios } = await supabaseAdmin
+            .from('medical_scenarios')
+            .select('*');
+        
+        const baseScenario = baseScenarios && baseScenarios.length > 0 
+            ? baseScenarios[Math.floor(Math.random() * baseScenarios.length)]
+            : null;
+
+        systemPrompt = `
+            You are a HEMS Dispatch Coordinator. Generate a realistic and biologically plausible medical emergency scenario.
+            
+            BIOLOGICAL CONSTRAINTS:
+            - If age < 12, weight must be appropriate for a child (e.g., 20-100 lbs).
+            - If age > 18, weight should be realistic for an adult (e.g., 120-280 lbs).
+            - The condition MUST match the assigned age (e.g., don't give a 5-year-old a geriatric stroke).
+            - Weight must reasonably correlate with the assigned sex and age.
+
+            Return ONLY a JSON object with: 
+            patientAge (string), 
+            patientGender (Male/Female), 
+            patientWeightLbs (string), 
+            patientDetails (detailed 2-3 sentence clinical summary), 
+            medicalResponse (specific interventions required).
+        `;
+
+        userPrompt = `
+            Mission Type: ${context.type}. 
+            Region: ${context.region}.
+            Base Scenario to use as inspiration: ${baseScenario ? baseScenario.title : 'Random Trauma/Medical'}.
+            Scenario Details: ${baseScenario ? baseScenario.description_base : 'N/A'}.
+        `;
     } else if (mode === 'REVIEW_FLIGHT') {
         systemPrompt = "You are a HEMS Chief Pilot performing an After Action Review (AAR). Analyze the provided flight telemetry and pilot notes. Return ONLY a JSON object with: score (number 0-100), efficiencyRating (string), and criticalCritique (concise professional feedback).";
         userPrompt = `Telemetry: ${JSON.stringify(context.tracking)}. Pilot Notes: ${context.notes}. Airframe: ${context.helicopter}.`;

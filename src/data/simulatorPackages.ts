@@ -33,17 +33,19 @@ export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'hems-dispatch-bridge',
         name: 'Step 2: Tactical Bridge UI',
-        description: 'The "Popup Window". Optimized for Windows/Mac. This is the high-fidelity UI where you view maps, AI comms, and patient data.',
+        description: 'The Standalone "Command Center". Choose the installer that matches your hardware architecture.',
         pluginType: 'Standalone App',
         downloads: [
-            { version: 'Download Bridge UI (.zip)', url: '/downloads/hems-dispatch.zip' },
+            { version: 'Windows Installer (Box)', url: 'https://app.box.com/s/8dn32k55blx4isbtmu2pe9j4zpwn2vs9' },
+            { version: 'Mac Silicon/ARM (Box)', url: 'https://app.box.com/s/yr29vbkfgi58hbyhc2u062htvnw33qh1' },
+            { version: 'Mac Intel (Box)', url: 'https://app.box.com/s/2tlvlms9suw0bm62zo158y6dt5zg2ji0' },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
-            'Extract the .zip to your desktop.',
-            'Windows: Double-click "LAUNCH_BRIDGE.bat".',
-            'Mac: Run "chmod +x LAUNCH_BRIDGE.command" in Terminal to fix permissions.',
-            'Mac: Right-Click the file and select "Open" to bypass security.',
+            'Download the correct installer for your OS.',
+            'Windows: Run the .exe and follow setup prompts.',
+            'Mac: Open the .dmg and drag HEMS Ops to Applications.',
+            'Ensure your Firewall allows traffic on local port 8080.',
         ],
     },
     {

@@ -3,23 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthGuard';
 import { Profile } from './useProfiles';
 import { toast } from 'sonner';
-import { createStripeCheckoutSession } from '@/integrations/stripe/api';
-import { getStripe } from '@/integrations/stripe/client';
 
 interface ProfileUpdateInput extends Partial<Omit<Profile, 'id' | 'updated_at' | 'api_key'>> {}
 
-const fetchUserProfile = async (userId: string): Promise<Profile & { api_key: string, stripe_customer_id: string | null } | null> => {
+const fetchUserProfile = async (userId: string): Promise<Profile & { api_key: string } | null> => {
   if (!userId) return null;
 
   const { data: profile, error: pError } = await supabase
     .from('profiles')
-    .select('*, is_subscribed')
+    .select('*')
     .eq('id', userId)
     .single();
 
   if (pError && pError.code !== 'PGRST116') throw new Error(pError.message);
 
-  // Fetch API Key (from user_api_keys)
   const { data: keyData, error: kError } = await supabase
     .from('user_api_keys')
     .select('api_key')
@@ -28,19 +25,10 @@ const fetchUserProfile = async (userId: string): Promise<Profile & { api_key: st
 
   if (kError && kError.code !== 'PGRST116') throw new Error(kError.message);
 
-  // Fetch sensitive data (from private_profiles)
-  const { data: privateData, error: prError } = await supabase
-    .from('private_profiles')
-    .select('stripe_customer_id')
-    .eq('user_id', userId)
-    .single();
-
-  if (prError && prError.code !== 'PGRST116') throw new Error(prError.message);
-
   return { 
     ...profile, 
     api_key: keyData?.api_key || 'NONE',
-    stripe_customer_id: privateData?.stripe_customer_id || null,
+    is_subscribed: true // Force premium access for all beta users
   } as any;
 };
 
@@ -72,42 +60,6 @@ const rotateApiKey = async (userId: string): Promise<string> => {
     return data.api_key;
 };
 
-const initiateStripeCheckout = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-        toast.error("You must be logged in to subscribe.");
-        return;
-    }
-
-    const stripe = await getStripe();
-    if (!stripe) {
-        toast.error("Stripe Secure Terminal failed to load. Please check your internet connection or disable ad-blockers.");
-        return;
-    }
-
-    const sessionId = await createStripeCheckoutSession();
-    if (!sessionId) return;
-
-    // Use type assertion to bypass strict type check for the redirect method
-    const { error } = await (stripe as any).redirectToCheckout({ sessionId });
-    if (error) {
-        throw new Error(error.message);
-    }
-};
-
-const initiateCustomerPortal = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-        toast.error("You must be logged in to manage your subscription.");
-        return;
-    }
-
-    const { data, error } = await supabase.functions.invoke('create-customer-portal-session');
-    if (error) throw error;
-
-    window.location.href = data.url;
-};
-
 export const useProfileManagement = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -124,7 +76,7 @@ export const useProfileManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
-      toast.success("Profile updated!");
+      toast.success("Personnel record updated.");
     }
   });
 
@@ -132,22 +84,7 @@ export const useProfileManagement = () => {
       mutationFn: () => rotateApiKey(user!.id),
       onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
-          toast.success("API Key rotated!");
-      }
-  });
-  
-  const initiateCheckoutMutation = useMutation({
-      mutationFn: initiateStripeCheckout,
-      onError: (error: any) => {
-          toast.error(`Failed to start checkout: ${error.message}`);
-      }
-  });
-
-  const initiatePortalMutation = useMutation({
-      mutationFn: initiateCustomerPortal,
-      onError: (error: any) => {
-          const errorMessage = error.context?.body?.error || error.message || 'An unknown error occurred.';
-          toast.error(`Failed to open portal: ${errorMessage}`);
+          toast.success("Security token rotated.");
       }
   });
 
@@ -156,11 +93,11 @@ export const useProfileManagement = () => {
     isLoading: profileQuery.isLoading,
     isUpdating: updateMutation.isPending,
     isRotatingKey: rotateKeyMutation.isPending,
-    isInitiatingCheckout: initiateCheckoutMutation.isPending,
-    isInitiatingPortal: initiatePortalMutation.isPending,
     updateProfile: updateMutation.mutateAsync,
     rotateApiKey: rotateKeyMutation.mutateAsync,
-    initiateCheckout: initiateCheckoutMutation.mutateAsync,
-    initiateCustomerPortal: initiatePortalMutation.mutateAsync,
+    initiateCheckout: async () => { toast.info("HEMS OPS-CENTER is free! Support the dev on Buy Me a Coffee."); },
+    initiateCustomerPortal: async () => { toast.info("Standalone access enabled for all personnel."); },
+    isInitiatingCheckout: false,
+    isInitiatingPortal: false,
   };
 };

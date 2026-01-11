@@ -20,14 +20,14 @@ const BaseIcon = L.divIcon({
 
 const MissionAircraftIcon = L.divIcon({
     className: 'aircraft-marker',
-    html: `<div class="p-1.5 rounded-full bg-black text-[#00ff41] border-2 border-[#00ff41] shadow-[0_0_10px_rgba(0,255,65,0.5)] flex items-center justify-center animate-pulse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
+    html: `<div class="p-1.5 rounded-full bg-primary text-black border-2 border-white shadow-[0_0_15px_rgba(255,165,0,0.8)] flex items-center justify-center animate-pulse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16]
 });
 
 const FreeAircraftIcon = L.divIcon({
     className: 'aircraft-marker',
-    html: `<div class="p-1.5 rounded-full bg-white text-primary border-2 border-primary shadow-[0_0_10px_rgba(255,165,0,0.3)] flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
+    html: `<div class="p-1.5 rounded-full bg-green-600 text-white border-2 border-white shadow-[0_0_15px_rgba(22,163,74,0.6)] flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14]
 });
@@ -65,14 +65,14 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
     }, [bases, missions, standalonePilots]);
 
     return (
-        <MapContainerWrapper className="h-full border-none rounded-none bg-black relative">
+        <MapContainerWrapper className="h-full border-none rounded-none bg-zinc-100 relative">
             <WeatherRadarOverlay />
             
             <MapContainer 
                 center={center} 
                 zoom={9} 
                 scrollWheelZoom={true} 
-                className="h-full w-full grayscale-[0.6] invert-[0.1] contrast-[1.2]"
+                className="h-full w-full"
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -136,7 +136,7 @@ const TacticalMap: React.FC<TacticalMapProps> = ({ missions, bases }) => {
 
             {/* Tactical Info Overlay */}
             <div className="absolute bottom-6 right-6 z-[500] pointer-events-none">
-                <div className="bg-black/90 backdrop-blur-md p-5 rounded-2xl border border-primary/20 text-[#00ff41] font-mono shadow-2xl min-w-[200px]">
+                <div className="bg-black/80 backdrop-blur-md p-5 rounded-2xl border border-primary/20 text-[#00ff41] font-mono shadow-2xl min-w-[200px]">
                     <div className="flex items-center justify-between border-b border-primary/20 pb-2 mb-3">
                         <div className="flex items-center space-x-2">
                             <Satellite className="w-4 h-4 text-primary animate-pulse" />

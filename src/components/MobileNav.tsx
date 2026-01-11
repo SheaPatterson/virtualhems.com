@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, LayoutDashboard, Zap, History, FileText, Users, MapPin, Download, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, HeartPulse, DollarSign, Book, Lock, ShieldAlert } from 'lucide-react';
+import { Menu, LogOut, LogIn, LayoutDashboard, Zap, History, FileText, Users, MapPin, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, Coffee, Book, ShieldAlert } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from '@/integrations/supabase/auth';
 import { useAuth } from './AuthGuard';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useProfileManagement } from '@/hooks/useProfileManagement';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -16,7 +15,6 @@ interface NavItem {
     label: string;
     icon: React.ElementType;
     public?: boolean;
-    premium?: boolean;
 }
 
 interface NavSection {
@@ -29,17 +27,17 @@ const operationSections: NavSection[] = [
         title: "Flight Operations",
         items: [
             { href: '/dashboard', label: 'Operations Command', icon: LayoutDashboard },
-            { href: '/generate', label: 'Mission Dispatcher', icon: Zap, premium: true },
+            { href: '/generate', label: 'Mission Dispatcher', icon: Zap },
             { href: '/logbook', label: 'Personal Logbook', icon: Book },
-            { href: '/live-tracking', label: 'Tactical Flight Following', icon: Satellite, premium: true },
+            { href: '/live-tracking', label: 'Global Tracking', icon: Satellite },
             { href: '/mission-history', label: 'Mission Archive', icon: History },
         ],
     },
     {
         title: "Safety & Compliance",
         items: [
-            { href: '/incident-reports', label: 'Safety Management System', icon: Shield },
-            { href: '/flight-planning', label: 'Flight Guides & SOPs', icon: Plane, public: true },
+            { href: '/incident-reports', label: 'SMS Reporting', icon: Shield },
+            { href: '/flight-planning', label: 'Flight Guides / SOP', icon: Plane, public: true },
             { href: '/documentation', label: 'Technical Manual', icon: BookOpen, public: true },
         ],
     },
@@ -48,18 +46,17 @@ const operationSections: NavSection[] = [
         items: [
             { href: '/hospital-directory', label: 'Facility Registry', icon: Hospital },
             { href: '/helicopter-bases', label: 'HEMS Bases', icon: MapPin },
-            { href: '/operational-map', label: 'Regional Tactical Map', icon: Map },
+            { href: '/operational-map', label: 'Tactical Map', icon: Map },
             { href: '/hospital-scenery', label: 'LZ Visual Gallery', icon: Image },
         ],
     },
     {
-        title: "Community & Tools",
+        title: "Community",
         items: [
             { href: '/pilot-directory', label: 'Personnel Manifest', icon: Users },
-            { href: '/plugins', label: 'Tactical Integration Hub', icon: Code, public: true },
-            { href: '/downloads', label: 'Resource Library', icon: Download, public: true },
+            { href: '/plugins', label: 'Integration Hub', icon: Code, public: true },
             { href: '/community', label: 'Crew Q&A Board', icon: MessageSquare },
-            { href: '/discord', label: 'Discord Community', icon: MessageSquare },
+            { href: '/support', label: 'Support the Dev', icon: Coffee, public: true },
         ],
     },
 ];
@@ -68,46 +65,42 @@ const adminSections: NavSection[] = [
     {
         title: "HQ Command",
         items: [
-            { href: '/admin/overview', label: 'Admin Hub', icon: Settings },
+            { href: '/admin/overview', label: 'Admin Terminal', icon: Settings },
             { href: '/admin/live-ops', label: 'Live Operations', icon: Activity },
             { href: '/admin/safety-audit', label: 'Safety Audit', icon: ShieldAlert },
             { href: '/admin/notams', label: 'NOTAM Broadcast', icon: Megaphone },
-            { href: '/admin/permission', label: 'RBAC Security', icon: Shield },
+            { href: '/admin/permission', label: 'Personnel Access', icon: Shield },
         ],
     },
     {
-        title: "Asset Management",
+        title: "Registry Data",
         items: [
-            { href: '/admin/aircraft', label: 'Aircraft Fleet', icon: Plane },
-            { href: '/admin/crew-bases', label: 'Crew Bases', icon: MapPin },
-            { href: '/admin/hospitals', label: 'Facility Registry', icon: Hospital },
-            { href: '/admin/hospital-scenery', label: 'Scenery Assets', icon: Image },
+            { href: '/admin/aircraft', label: 'Fleet Registry', icon: Plane },
+            { href: '/admin/crew-bases', label: 'HEMS Stations', icon: MapPin },
+            { href: '/admin/hospitals', label: 'Facility Master', icon: Hospital },
+            { href: '/admin/hospital-scenery', label: 'Visual Briefings', icon: Image },
             { href: '/admin/content', label: 'Content Engine', icon: FileText },
-            { href: '/admin/downloads', label: 'Download Assets', icon: Download },
         ],
     }
 ];
 
-const MobileSidebarLink: React.FC<{ href: string; label: string; icon: React.ElementType; onLinkClick: () => void; isLocked?: boolean }> = ({ href, label, icon: Icon, onLinkClick, isLocked }) => {
+const MobileSidebarLink: React.FC<{ href: string; label: string; icon: React.ElementType; onLinkClick: () => void }> = ({ href, label, icon: Icon, onLinkClick }) => {
     const location = useLocation();
-    const isActive = !isLocked && (location.pathname === href || (href === '/dashboard' && location.pathname === '/'));
+    const isActive = location.pathname === href || (href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
 
     return (
         <Link
-            to={isLocked ? '/pricing' : href}
+            to={href}
             onClick={onLinkClick}
             className={cn(
-                "flex items-center p-3 rounded-md text-base font-medium transition-colors",
+                "flex items-center p-3 rounded-xl text-base font-bold transition-all",
                 isActive
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : isLocked
-                    ? "text-muted-foreground/50 hover:bg-primary/5"
+                    ? "bg-primary text-primary-foreground italic translate-x-1"
                     : "text-foreground hover:bg-muted hover:text-primary"
             )}
         >
             <Icon className="w-5 h-5 mr-3" />
-            <span className={cn(isLocked && "line-through")}>{label}</span>
-            {isLocked && <Lock className="w-4 h-4 ml-auto text-primary" />}
+            <span>{label}</span>
         </Link>
     );
 };
@@ -116,8 +109,6 @@ const MobileNav: React.FC = () => {
     const location = useLocation();
     const { user } = useAuth();
     const { isAdmin } = useUserRole();
-    const { profile } = useProfileManagement();
-    const isSubscribed = profile?.is_subscribed ?? false;
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSignOut = async () => {
@@ -139,46 +130,47 @@ const MobileNav: React.FC = () => {
                     <Menu className="h-6 w-6" />
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0 flex flex-col z-[1000]">
-                <SheetHeader className="p-6 pb-2 border-b">
-                    <SheetTitle className="flex items-center space-x-3">
-                        <HeartPulse className="h-10 w-10 text-primary" />
-                        <span className="text-xl font-black italic tracking-tighter uppercase text-primary text-shadow-primary">HEMS Ops</span>
+            <SheetContent side="left" className="w-[300px] p-0 flex flex-col z-[1000] border-r-4 border-primary/20">
+                <SheetHeader className="p-8 pb-4 bg-primary/5">
+                    <SheetTitle className="flex flex-col items-center space-y-4">
+                        <img src="/logo-main.png" alt="Logo" className="h-20 w-20 object-contain" />
+                        <div className="text-center">
+                            <span className="text-2xl font-black italic tracking-tighter uppercase text-primary text-shadow-primary">HEMS OPS</span>
+                            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-60">Operations Center</p>
+                        </div>
                     </SheetTitle>
                 </SheetHeader>
                 
-                <ScrollArea className="flex-grow px-4 mt-4">
-                    <nav className="space-y-6 pb-6">
-                        {sections.map((section) => (
-                            <div key={section.title} className="space-y-2">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-3 mb-1 opacity-60">
-                                    {section.title}
-                                </h3>
-                                <div className="space-y-1">
-                                    {section.items.map((item) => {
-                                        const isVisible = user ? true : item.public;
-                                        if (!isVisible) return null;
-                                        
-                                        const isLocked = item.premium && !isSubscribed && !isAdmin;
-                                        return (
+                <ScrollArea className="flex-grow px-4 mt-6">
+                    <nav className="space-y-10 pb-10">
+                        {sections.map((section) => {
+                            const visibleItems = user ? section.items : section.items.filter(i => i.public);
+                            if (visibleItems.length === 0) return null;
+
+                            return (
+                                <div key={section.title} className="space-y-3">
+                                    <h3 className="text-[9px] font-black uppercase tracking-[0.25em] text-primary/40 px-4 mb-2">
+                                        {section.title}
+                                    </h3>
+                                    <div className="space-y-1">
+                                        {visibleItems.map((item) => (
                                             <MobileSidebarLink 
                                                 key={item.href} 
                                                 {...item} 
                                                 onLinkClick={handleLinkClick}
-                                                isLocked={isLocked}
                                             />
-                                        );
-                                    })}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                         
                         {user && isAdmin && (
                             <>
                                 <Separator className="my-4 opacity-50" />
                                 <MobileSidebarLink
                                     href={isAdminRoute ? '/dashboard' : '/admin/overview'}
-                                    label={isAdminRoute ? 'Exit HQ Command' : 'Enter HQ Command'}
+                                    label={isAdminRoute ? 'EXIT TERMINAL' : 'HQ ADMIN ACCESS'}
                                     icon={isAdminRoute ? LayoutDashboard : Settings}
                                     onLinkClick={handleLinkClick}
                                 />
@@ -187,23 +179,16 @@ const MobileNav: React.FC = () => {
                     </nav>
                 </ScrollArea>
                 
-                <div className="p-4 border-t bg-muted/20 space-y-3">
+                <div className="p-6 border-t bg-muted/20 space-y-3">
                     {!user ? (
-                        <>
-                            <Button asChild className="w-full h-12 bg-primary font-black italic shadow-xl hover:shadow-primary/20 transition-all rounded-xl">
-                                <Link to="/pricing" onClick={handleLinkClick}>
-                                    <DollarSign className="w-4 h-4 mr-2" /> SECURE ACCESS
-                                </Link>
-                            </Button>
-                            <Button asChild variant="link" className="w-full text-xs text-muted-foreground">
-                                <Link to="/login" onClick={handleLinkClick}>
-                                    Already a member? Log In
-                                </Link>
-                            </Button>
-                        </>
+                        <Button asChild className="w-full h-14 bg-primary text-primary-foreground font-black italic shadow-xl rounded-2xl">
+                            <Link to="/login" onClick={handleLinkClick}>
+                                <LogIn className="w-5 h-5 mr-2" /> PILOT LOGIN
+                            </Link>
+                        </Button>
                     ) : (
-                        <Button onClick={handleSignOut} variant="outline" className="w-full font-bold uppercase text-xs tracking-widest">
-                            <LogOut className="w-4 h-4 mr-2" /> DISCONNECT
+                        <Button onClick={handleSignOut} variant="outline" className="w-full h-12 font-black uppercase text-[10px] tracking-widest border-2">
+                            <LogOut className="w-4 h-4 mr-2" /> DISCONNECT LINK
                         </Button>
                     )}
                 </div>

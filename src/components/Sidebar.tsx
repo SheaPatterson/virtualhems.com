@@ -5,12 +5,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     Zap, History, FileText, Users, MapPin, Settings,
-    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, Lock, ShieldAlert
+    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, ShieldAlert, Coffee
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from './AuthGuard'; 
-import { useProfileManagement } from '@/hooks/useProfileManagement';
 import { useActiveMissions } from '@/hooks/useMissions';
 
 interface NavItem {
@@ -18,7 +17,6 @@ interface NavItem {
     label: string;
     icon: React.ElementType;
     public?: boolean;
-    premium?: boolean;
 }
 
 interface NavSection {
@@ -31,9 +29,9 @@ const operationSections: NavSection[] = [
         title: "Flight Operations",
         items: [
             { href: '/dashboard', label: 'Operations Command', icon: LayoutDashboard },
-            { href: '/generate', label: 'Mission Dispatcher', icon: Zap, premium: true },
+            { href: '/generate', label: 'Mission Dispatcher', icon: Zap },
             { href: '/logbook', label: 'Personal Logbook', icon: Book },
-            { href: '/live-tracking', label: 'Global Tracking', icon: Satellite, premium: true },
+            { href: '/live-tracking', label: 'Global Tracking', icon: Satellite },
             { href: '/mission-history', label: 'Mission Archive', icon: History },
         ],
     },
@@ -60,6 +58,7 @@ const operationSections: NavSection[] = [
             { href: '/pilot-directory', label: 'Personnel Manifest', icon: Users },
             { href: '/plugins', label: 'Integration Hub', icon: Code, public: true },
             { href: '/community', label: 'Crew Q&A Board', icon: MessageSquare },
+            { href: '/support', label: 'Support the Dev', icon: Coffee, public: true },
         ],
     },
 ];
@@ -113,27 +112,12 @@ const SidebarLink: React.FC<{ href: string; label: string; icon: React.ElementTy
     );
 };
 
-const LockedSidebarLink: React.FC<{ label: string; icon: React.ElementType }> = ({ label, icon: Icon }) => (
-    <Link
-        to="/pricing"
-        className="group flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-muted-foreground/50 hover:bg-primary/5 hover:text-primary/80 transition-all"
-    >
-        <div className="flex items-center">
-            <Icon className="w-4 h-4 mr-3" />
-            <span className="line-through">{label}</span>
-        </div>
-        <Lock className="w-3 h-3 text-primary" />
-    </Link>
-);
-
 const Sidebar = () => {
     const location = useLocation();
     const { user, isLoading: isAuthLoading } = useAuth(); 
     const { isAdmin } = useUserRole(); 
-    const { profile } = useProfileManagement();
     const { data: activeMissions } = useActiveMissions();
     
-    const isSubscribed = profile?.is_subscribed ?? false;
     const isUserFlying = activeMissions?.some(m => m.user_id === user?.id);
     
     if (isAuthLoading) return <div className="hidden lg:block w-64 h-full border-r bg-card p-4"></div>;
@@ -184,12 +168,9 @@ const Sidebar = () => {
                                     {section.title}
                                 </h3>
                                 <div className="space-y-1">
-                                    {visibleItems.map((item) => {
-                                        if (item.premium && !isSubscribed && !isAdmin) {
-                                            return <LockedSidebarLink key={item.href} {...item} />;
-                                        }
-                                        return <SidebarLink key={item.href} {...item} activeMission={isUserFlying} />;
-                                    })}
+                                    {visibleItems.map((item) => (
+                                        <SidebarLink key={item.href} {...item} activeMission={isUserFlying} />
+                                    ))}
                                 </div>
                             </div>
                         );
@@ -199,12 +180,6 @@ const Sidebar = () => {
 
             {user && (
                 <div className="mt-auto pt-4 border-t border-border/50 space-y-4">
-                    {isUserFlying && (
-                        <div className="px-4 py-2 bg-green-600/10 border border-green-600/20 rounded-xl flex items-center space-x-3">
-                            <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase italic text-green-700 dark:text-green-400">Tactical Uplink Active</span>
-                        </div>
-                    )}
                     <Link to="/user" className="flex items-center space-x-3 p-2 rounded-xl hover:bg-muted/50 transition-colors">
                         <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
                             <Users className="w-4 h-4 text-primary" />

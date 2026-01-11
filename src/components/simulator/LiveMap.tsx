@@ -22,7 +22,7 @@ L.Icon.Default.mergeOptions({
 
 const AircraftIcon = L.divIcon({
     className: 'live-aircraft-marker',
-    html: `<div class="p-1 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(255,165,0,0.6)] flex items-center justify-center animate-pulse"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
+    html: `<div class="p-1 rounded-full bg-primary border-2 border-white shadow-[0_0_15px_rgba(255,165,0,0.8)] flex items-center justify-center animate-pulse"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16]
 });
@@ -68,7 +68,7 @@ const LiveMap: React.FC<LiveMapProps> = ({ latitude, longitude, status, waypoint
     [waypoints]);
 
     return (
-        <div className="h-full w-full rounded-lg overflow-hidden shadow-lg z-0 bg-gray-900">
+        <div className="h-full w-full rounded-lg overflow-hidden shadow-lg z-0 bg-zinc-100">
             <MapContainer 
                 center={position} 
                 zoom={13} 
@@ -84,7 +84,7 @@ const LiveMap: React.FC<LiveMapProps> = ({ latitude, longitude, status, waypoint
                 {polylinePositions.length > 1 && (
                     <Polyline 
                         positions={polylinePositions} 
-                        pathOptions={{ color: 'hsl(39 100% 50%)', weight: 4, opacity: 0.3, dashArray: '10, 15' }} 
+                        pathOptions={{ color: '#f97316', weight: 5, opacity: 0.6, dashArray: '10, 15' }} 
                     />
                 )}
 
