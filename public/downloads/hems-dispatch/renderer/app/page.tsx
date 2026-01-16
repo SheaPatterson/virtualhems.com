@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TelemetryData, BridgeStatus } from '../lib/models';
 import LiveMap from '../components/LiveMap';
 import '../components/LiveMap.css';
+import { DispatchTerminal } from '../components/DispatchTerminal';
 
 const StatusDisplay = ({ status }: { status: BridgeStatus | null }) => {
     return (
@@ -39,7 +40,7 @@ const TelemetryDisplay = ({ telemetry }: { telemetry: TelemetryData | null }) =>
     return (
         <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-2">Aircraft Telemetry</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                 <p><strong>Lat:</strong> {telemetry.latitude.toFixed(4)}</p>
                 <p><strong>Lon:</strong> {telemetry.longitude.toFixed(4)}</p>
                 <p><strong>Alt:</strong> {telemetry.altitude.toFixed(0)} ft</p>
@@ -57,7 +58,6 @@ export default function HomePage() {
         status: null
     });
 
-    // Poll the local Bridge Server
     useEffect(() => {
         const poll = async () => {
             try {
@@ -76,11 +76,20 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-900 text-gray-100 p-4 space-y-4">
-            <h1 className="text-3xl font-bold text-center">HEMS Dispatch</h1>
-            <StatusDisplay status={data.status} />
-            <TelemetryDisplay telemetry={data.telemetry} />
-            <LiveMap telemetry={data.telemetry} />
+        <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col p-4">
+            <h1 className="text-3xl font-bold text-center mb-4">HEMS Dispatch</h1>
+            <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-1 flex flex-col gap-4">
+                    <StatusDisplay status={data.status} />
+                    <TelemetryDisplay telemetry={data.telemetry} />
+                    <div className="flex-grow min-h-[300px]">
+                        <DispatchTerminal />
+                    </div>
+                </div>
+                <div className="md:col-span-2 h-[60vh] md:h-auto">
+                    <LiveMap telemetry={data.telemetry} />
+                </div>
+            </div>
         </div>
     );
 }

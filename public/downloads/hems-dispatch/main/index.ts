@@ -6,6 +6,7 @@ import { z } from 'zod';
 // @ts-ignore
 import sqlite3 from 'sqlite3';
 import { TelemetryData, BridgeStatus } from '../renderer/lib/models';
+import { getDispatchResponse } from './ai';
 
 const app = express();
 const port = 3001;
@@ -93,6 +94,19 @@ app.get('/api/status', (_req: Request, res: Response) => {
         lastPacketReceived: lastHeartbeat
     };
     res.json({ status, telemetry: currentTelemetry });
+});
+
+// 3. AI DISPATCH
+app.post('/api/dispatch', async (req: Request, res: Response) => {
+    const { message } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const response = await getDispatchResponse(message, currentTelemetry);
+
+    res.json({ response });
 });
 
 app.listen(port, () => {
