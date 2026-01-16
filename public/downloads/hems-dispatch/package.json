@@ -1,43 +1,48 @@
 {
-  "name": "hems-tactical-bridge",
-  "version": "5.2.0",
+  "name": "hems-dispatch",
+  "version": "0.1.0",
   "private": true,
-  "description": "Standalone data bridge for X-Plane and HEMS OPS-CENTER",
-  "main": "main.js",
+  "main": "main/index.ts",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --dir",
-    "pack": "electron-builder"
+    "dev": "electron .",
+    "build": "next build renderer && electron-builder",
+    "start": "next start renderer",
+    "postinstall": "cd renderer && npm install"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "cors": "^2.8.5"
+    "@types/leaflet": "^1.9.21",
+    "electron": "^40.0.0",
+    "electron-next": "^3.1.5",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^5.0.0",
+    "sqlite3": "^5.1.7",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "electron": "^31.1.0",
-    "electron-builder": "^24.13.7"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.19",
+    "clsx": "^2.1.1",
+    "electron-builder": "^24.13.3",
+    "eslint": "^8",
+    "eslint-config-next": "^16.1.2",
+    "lucide-react": "^0.378.0",
+    "next": "^14.2.35",
+    "postcss": "^8.4.38",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss": "^3.4.1",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5"
   },
   "build": {
-    "appId": "com.hems.tacticalbridge",
-    "productName": "HEMS Tactical Bridge",
-    "copyright": "Copyright © 2024 SRP Consulting Group, LLC.",
+    "appId": "com.example.hems-dispatch",
+    "productName": "HEMS Dispatch",
+    "asar": true,
     "directories": {
-      "output": "dist",
-      "buildResources": "assets"
-    },
-    "files": [
-      "main.js",
-      "package.json",
-      "server.js",
-      "ui/**/*"
-    ],
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/icon.icns"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
+      "output": "dist"
     }
   }
 }
