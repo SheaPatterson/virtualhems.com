@@ -11,7 +11,7 @@ let tray: Tray | null;
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    icon: path.join(process.env.VITE_PUBLIC!, 'favicon.ico'),
     width: 1280,
     height: 800,
     minWidth: 1024,
@@ -34,7 +34,9 @@ function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    win.loadFile(path.join(process.env.DIST, 'index.html'));
+    // Use fileURLToPath for robust path resolution in production
+    const indexHtmlPath = path.join(process.env.DIST!, 'index.html');
+    win.loadFile(indexHtmlPath);
   }
 
   win.on('close', (event: any) => {
@@ -47,7 +49,7 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = path.join(process.env.VITE_PUBLIC, 'favicon.ico');
+  const iconPath = path.join(process.env.VITE_PUBLIC!, 'favicon.ico');
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon.resize({ width: 16, height: 16 }));
   

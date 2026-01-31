@@ -1,2 +1,0 @@
-import Pricing from "./pages/Pricing";
-import Dashboard from "./pages/Dashboard";

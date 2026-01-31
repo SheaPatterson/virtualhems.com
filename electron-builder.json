@@ -14,10 +14,11 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": ["x64", "ia32"]
       }
     ],
-    "icon": "public/favicon.ico"
+    "icon": "public/favicon.ico",
+    "publisherName": "Shea Patterson"
   },
   "nsis": {
     "oneClick": false,
@@ -26,7 +27,12 @@
     "runAfterFinish": true
   },
   "mac": {
-    "target": ["dmg"],
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["universal"]
+      }
+    ],
     "category": "public.app-category.utilities",
     "icon": "public/favicon.ico"
   },
@@ -45,5 +51,11 @@
       }
     ]
   },
-  "publish": null
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "SheaPatterson",
+      "repo": "HEMS"
+    }
+  ]
 }

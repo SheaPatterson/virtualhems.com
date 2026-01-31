@@ -43,6 +43,7 @@ import UserProfilePage from "./pages/User";
 import CockpitEFB from "./pages/CockpitEFB";
 import SimulatorClientPage from "./pages/SimulatorClientPage";
 import MapEmbedPage from "./pages/MapEmbedPage";
+import LocalBridgeDisplay from "./pages/LocalBridgeDisplay"; // NEW IMPORT
 
 // Admin Pages
 import AdminOverview from "./pages/admin/Overview";
@@ -120,6 +121,7 @@ const App = () => (
                   <Route path="/tracking/:id" element={<MissionTracking />} />
                   <Route path="/live-tracking" element={<LiveTracking />} />
                   <Route path="/simulator-client" element={<SimulatorClientPage />} />
+                  <Route path="/local-bridge" element={<LocalBridgeDisplay />} /> {/* NEW ROUTE */}
 
                   {/* Admin Command Center */}
                   <Route element={<AdminGuard />}>

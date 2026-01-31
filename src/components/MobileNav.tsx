@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, LogIn, LayoutDashboard, Zap, History, FileText, Users, MapPin, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, Coffee, Book, ShieldAlert } from 'lucide-react';
+import { Menu, LogOut, LogIn, LayoutDashboard, Zap, History, FileText, Users, MapPin, BookOpen, Settings, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Plane, Shield, Megaphone, Coffee, Book, ShieldAlert, Server } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from '@/integrations/supabase/auth';
@@ -48,6 +48,7 @@ const operationSections: NavSection[] = [
             { href: '/helicopter-bases', label: 'HEMS Bases', icon: MapPin },
             { href: '/operational-map', label: 'Tactical Map', icon: Map },
             { href: '/hospital-scenery', label: 'LZ Visual Gallery', icon: Image },
+            { href: '/local-bridge', label: 'Local Bridge Status', icon: Server }, // NEW LINK
         ],
     },
     {

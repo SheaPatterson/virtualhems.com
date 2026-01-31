@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     Zap, History, FileText, Users, MapPin, Settings,
-    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, ShieldAlert, Coffee
+    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, ShieldAlert, Coffee, Server
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -50,6 +50,7 @@ const operationSections: NavSection[] = [
             { href: '/helicopter-bases', label: 'HEMS Bases', icon: MapPin },
             { href: '/operational-map', label: 'Tactical Map', icon: Map },
             { href: '/hospital-scenery', label: 'LZ Visual Gallery', icon: Image },
+            { href: '/local-bridge', label: 'Local Bridge Status', icon: Server }, // NEW LINK
         ],
     },
     {

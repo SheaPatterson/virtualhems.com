@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { History, Search, Eye, MapPin, Plane, Loader2, Calendar, CheckCircle2, XCircle, Activity } from 'lucide-react';
+import { History, Search, Eye, MapPin, Plane, Loader2, Calendar, CheckCircle2, XCircle, Activity, ExternalLink, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMissions, HistoricalMission } from '@/hooks/useMissions';
 import { useAuth } from '@/components/AuthGuard';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import PageHeader from '@/components/PageHeader';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'; // Import ContextMenu components
 
 const getStatusBadge = (status: HistoricalMission['status']) => {
     switch (status) {
@@ -27,6 +28,7 @@ const getStatusBadge = (status: HistoricalMission['status']) => {
 
 const MissionHistory = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | HistoricalMission['status']>('all');
 
@@ -37,6 +39,18 @@ const MissionHistory = () => {
     m.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (m.destination.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleLaunchNewMission = (mission: HistoricalMission) => {
+    // Pre-fill the planner with the base, helicopter, and crew from the historical mission
+    const preFilledState = {
+        missionType: mission.type,
+        selectedBaseId: mission.hemsBase.id,
+        selectedHelicopter: mission.helicopter,
+        crew: mission.crew,
+        // Note: Origin/Destination/Patient details would need more complex mapping if required
+    };
+    navigate('/generate', { state: preFilledState });
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-7xl">
@@ -96,41 +110,53 @@ const MissionHistory = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredMissions.map((m) => (
-                    <TableRow key={m.id} className="hover:bg-muted/30">
-                      <TableCell className="font-mono font-bold text-primary">{m.missionId}</TableCell>
-                      <TableCell>{getStatusBadge(m.status)}</TableCell>
-                      <TableCell>
-                        <Badge variant={m.type === 'Scene Call' ? 'destructive' : 'outline'} className={cn("text-[9px] h-5", m.type === 'Scene Call' ? 'bg-red-600/10 text-red-600 border-red-600/30' : '')}>
-                            {m.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm font-medium">
-                            <Plane className="w-3 h-3 mr-1 text-muted-foreground" />
-                            {m.helicopter.registration}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        <div className="flex items-center text-sm">
-                            <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
-                            {m.destination.name}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        <div className="flex items-center">
-                            <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
-                            {new Date(m.created_at).toLocaleDateString()}
-                        </div>
-                        <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString()}</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm">
-                            <Link to={`/report/${m.missionId}`}>
-                                <Eye className="w-4 h-4 mr-1" /> View Report
-                            </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    <ContextMenu key={m.id}>
+                        <ContextMenuTrigger asChild>
+                            <TableRow className="hover:bg-muted/30 cursor-context-menu">
+                                <TableCell className="font-mono font-bold text-primary">{m.missionId}</TableCell>
+                                <TableCell>{getStatusBadge(m.status)}</TableCell>
+                                <TableCell>
+                                    <Badge variant={m.type === 'Scene Call' ? 'destructive' : 'outline'} className={cn("text-[9px] h-5", m.type === 'Scene Call' ? 'bg-red-600/10 text-red-600 border-red-600/30' : '')}>
+                                        {m.type}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center text-sm font-medium">
+                                        <Plane className="w-3 h-3 mr-1 text-muted-foreground" />
+                                        {m.helicopter.registration}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="max-w-[200px] truncate">
+                                    <div className="flex items-center text-sm">
+                                        <MapPin className="w-3 h-3 mr-1 text-muted-foreground" />
+                                        {m.destination.name}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                    <div className="flex items-center">
+                                        <Calendar className="w-3 h-3 mr-1 text-muted-foreground" />
+                                        {new Date(m.created_at).toLocaleDateString()}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleTimeString()}</span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button asChild variant="ghost" size="sm">
+                                        <Link to={`/report/${m.missionId}`}>
+                                            <Eye className="w-4 h-4 mr-1" /> View Report
+                                        </Link>
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                            <ContextMenuItem onClick={() => navigate(`/report/${m.missionId}`)}>
+                                <ExternalLink className="w-4 h-4 mr-2" /> View Full Report
+                            </ContextMenuItem>
+                            <ContextMenuItem onClick={() => handleLaunchNewMission(m)}>
+                                <Zap className="w-4 h-4 mr-2" /> Re-Dispatch Mission
+                            </ContextMenuItem>
+                        </ContextMenuContent>
+                    </ContextMenu>
                   ))}
                 </TableBody>
               </Table>

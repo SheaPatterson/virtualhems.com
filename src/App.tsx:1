@@ -1,2 +1,0 @@
-import Login from "./pages/Login";
-import Pricing from "./pages/Pricing";
