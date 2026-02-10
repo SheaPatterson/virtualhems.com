@@ -492,21 +492,28 @@ async def complete_mission(mission_id: str, token_data: Dict = Depends(verify_to
     
     return {"success": True}
 
-# ============ DATA ENDPOINTS ============
+# ============ DATA ENDPOINTS (PUBLIC) ============
 
 @app.get("/api/hems-bases")
-async def get_hems_bases(token_data: Dict = Depends(verify_token)):
-    """Get all HEMS bases"""
+async def get_hems_bases():
+    """Get all HEMS bases (public)"""
     bases_table = get_table('HemsBases')
     response = bases_table.scan()
     return {"bases": response.get('Items', [])}
 
 @app.get("/api/hospitals")
-async def get_hospitals(token_data: Dict = Depends(verify_token)):
-    """Get all hospitals"""
+async def get_hospitals():
+    """Get all hospitals (public)"""
     hospitals_table = get_table('Hospitals')
     response = hospitals_table.scan()
     return {"hospitals": response.get('Items', [])}
+
+@app.get("/api/helicopters")
+async def get_helicopters():
+    """Get all helicopters (public)"""
+    helicopters_table = get_table('Helicopters')
+    response = helicopters_table.scan()
+    return {"helicopters": response.get('Items', [])}
 
 @app.get("/api/helicopters")
 async def get_helicopters(token_data: Dict = Depends(verify_token)):
