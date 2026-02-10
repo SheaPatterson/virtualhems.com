@@ -345,41 +345,78 @@ const Downloads = () => {
 
         {/* Mobile Apps */}
         <section>
-          <h2 className="text-3xl font-black uppercase mb-8 text-center">Mobile Apps</h2>
+          <h2 className="text-3xl font-black uppercase mb-8 text-center">iPad & Mobile</h2>
           <Card className="border-2 max-w-2xl mx-auto">
             <CardHeader className="text-center">
               <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Smartphone className="w-8 h-8 text-green-500" />
               </div>
-              <CardTitle className="text-2xl">iPad & Mobile EFB</CardTitle>
-              <CardDescription>Electronic Flight Bag companion app</CardDescription>
+              <CardTitle className="text-2xl">iPad EFB (Electronic Flight Bag)</CardTitle>
+              <CardDescription>Optimized cockpit view for tablets</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
                 <p className="text-sm">
-                  <strong>Good news!</strong> The VirtualHEMS web app is fully responsive and works great on iPad and mobile browsers. 
-                  Native apps are planned for enhanced features.
+                  <strong>Available Now!</strong> Add VirtualHEMS to your iPad home screen for a native app-like experience.
+                  The EFB view is optimized for landscape cockpit use with large touch targets.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Button disabled variant="outline" className="h-14 gap-2">
-                  <Apple className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="text-xs text-muted-foreground">Coming to</div>
-                    <div className="font-bold">App Store</div>
+              
+              {/* Main EFB Button */}
+              <Button asChild size="lg" className="w-full h-16 text-lg gap-3">
+                <a href="/efb">
+                  <Smartphone className="w-6 h-6" />
+                  Open iPad EFB View
+                </a>
+              </Button>
+
+              <div className="border-t pt-4">
+                <h4 className="font-bold text-sm mb-3 text-center">Add to Home Screen:</h4>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-muted/50 rounded-xl p-3">
+                    <div className="font-bold flex items-center gap-2 mb-2">
+                      <Apple className="w-4 h-4" /> iPad/iPhone
+                    </div>
+                    <ol className="text-xs text-muted-foreground space-y-1">
+                      <li>1. Open Safari on this site</li>
+                      <li>2. Tap the Share button</li>
+                      <li>3. Select "Add to Home Screen"</li>
+                    </ol>
                   </div>
-                </Button>
-                <Button disabled variant="outline" className="h-14 gap-2">
-                  <Smartphone className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="text-xs text-muted-foreground">Coming to</div>
-                    <div className="font-bold">Google Play</div>
+                  <div className="bg-muted/50 rounded-xl p-3">
+                    <div className="font-bold flex items-center gap-2 mb-2">
+                      <Monitor className="w-4 h-4" /> Desktop
+                    </div>
+                    <ol className="text-xs text-muted-foreground space-y-1">
+                      <li>1. Click the install icon in URL bar</li>
+                      <li>2. Or use Menu → Install App</li>
+                      <li>3. App appears in dock/taskbar</li>
+                    </ol>
                   </div>
-                </Button>
+                </div>
               </div>
-              <p className="text-xs text-center text-muted-foreground">
-                For now, visit the web app on your iPad/tablet for the full EFB experience
-              </p>
+
+              <div className="border-t pt-4">
+                <p className="text-xs text-center text-muted-foreground mb-3">
+                  Native apps coming soon:
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button disabled variant="outline" className="h-12 gap-2">
+                    <Apple className="w-4 h-4" />
+                    <div className="text-left text-xs">
+                      <div className="text-muted-foreground">Soon on</div>
+                      <div className="font-bold">App Store</div>
+                    </div>
+                  </Button>
+                  <Button disabled variant="outline" className="h-12 gap-2">
+                    <Smartphone className="w-4 h-4" />
+                    <div className="text-left text-xs">
+                      <div className="text-muted-foreground">Soon on</div>
+                      <div className="font-bold">Google Play</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </section>
