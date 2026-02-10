@@ -515,13 +515,6 @@ async def get_helicopters():
     response = helicopters_table.scan()
     return {"helicopters": response.get('Items', [])}
 
-@app.get("/api/helicopters")
-async def get_helicopters(token_data: Dict = Depends(verify_token)):
-    """Get all helicopters"""
-    helicopters_table = get_table('Helicopters')
-    response = helicopters_table.scan()
-    return {"helicopters": response.get('Items', [])}
-
 # ============ AI DISPATCH ENDPOINTS ============
 
 @app.post("/api/dispatch/ai")
