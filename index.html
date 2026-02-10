@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Polyfills for Amazon Cognito SDK
+      if (typeof global === 'undefined') { window.global = window; }
+      if (typeof process === 'undefined') { window.process = { env: {} }; }
+    </script>
     <link rel="icon" type="image/png" href="/logo-main.png" />
     <link rel="apple-touch-icon" href="/logo-main.png" />
     <link rel="manifest" href="/manifest.json" />
