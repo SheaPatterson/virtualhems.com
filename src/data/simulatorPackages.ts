@@ -17,17 +17,19 @@ export interface SimulatorPackage {
 export const simulatorPackages: SimulatorPackage[] = [
     {
         id: 'xplane-uplink',
-        name: 'Step 1: Lua Uplink Script',
-        description: 'The "Data Pipe". Compatible with X-Plane 11 and 12. This tiny script reads your aircraft position and sends it to the Bridge UI.',
-        pluginType: 'FlyWithLua Script',
+        name: 'X-Plane Plugin (v2.0)',
+        description: 'Professional WebSocket-based telemetry bridge for X-Plane 11/12. Real-time bidirectional communication with 10Hz updates.',
+        pluginType: 'FlyWithLua Plugin',
         downloads: [
-            { version: 'Download Uplink (.lua)', url: '/downloads/hems-dispatch-xp.lua', isScript: true },
+            { version: 'Download Plugin Package (.zip)', url: '/downloads/HEMS_XPlane_Plugin_v2.zip', isScript: false },
+            { version: 'Legacy Uplink (.lua)', url: '/downloads/hems-dispatch-xp.lua', isScript: true },
         ],
         documentationUrl: '/documentation',
         installationSteps: [
             'Requirement: FlyWithLua (X-Plane 11 or 12 version).',
-            'Drag "hems-dispatch-xp.lua" into X-Plane/Resources/plugins/FlyWithLua/Scripts/.',
-            'Restart X-Plane to initialize the pipe.',
+            'Extract ZIP and copy "HEMS_Bridge" folder to X-Plane/Resources/plugins/FlyWithLua/Scripts/.',
+            'Restart X-Plane - plugin auto-starts WebSocket server on port 8787.',
+            'Connect from HEMS web app to begin live tracking.',
         ],
     },
     {
