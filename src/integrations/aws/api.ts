@@ -10,21 +10,27 @@ class APIClient {
     this.baseUrl = config.apiEndpoint;
   }
   
-  private async getHeaders(useIdToken = false): Promise<HeadersInit> {
-    const token = useIdToken ? await getIdToken() : await getAccessToken();
-    
-    return {
+  private async getHeaders(requireAuth = false): Promise<HeadersInit> {
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
+    
+    if (requireAuth) {
+      const token = await getIdToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    
+    return headers;
   }
   
-  async get<T>(endpoint: string): Promise<T> {
+  async get<T>(endpoint: string, requireAuth = true): Promise<T> {
     if (!this.baseUrl) await this.init();
     
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'GET',
-      headers: await this.getHeaders(true)
+      headers: await this.getHeaders(requireAuth)
     });
     
     if (!response.ok) {
@@ -33,6 +39,11 @@ class APIClient {
     }
     
     return response.json();
+  }
+  
+  // Public GET (no auth required)
+  async getPublic<T>(endpoint: string): Promise<T> {
+    return this.get<T>(endpoint, false);
   }
   
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
