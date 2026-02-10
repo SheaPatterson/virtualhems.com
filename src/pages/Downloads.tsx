@@ -1,146 +1,410 @@
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Download, Loader2, FileText, Tag, Monitor, Apple, Coffee, Cpu } from 'lucide-react';
-import { useContent } from '@/hooks/useContent';
-import { useDownloads } from '@/hooks/useDownloads';
-import SanitizedHTML from '@/components/SanitizedHTML';
+import { 
+  Download, 
+  Plane, 
+  Monitor, 
+  Smartphone, 
+  Apple, 
+  CheckCircle, 
+  AlertCircle,
+  ExternalLink,
+  FileCode,
+  Cpu,
+  Wifi,
+  Settings
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PageHeader from '@/components/PageHeader';
-import { Separator } from '@/components/ui/separator';
-import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const Downloads = () => {
-  const { data: pageContent, isLoading: isContentLoading } = useContent('downloads');
-  const { downloads, isLoading: isDownloadsLoading } = useDownloads();
-
-  const isLoading = isContentLoading || isDownloadsLoading;
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-20 flex flex-col justify-center items-center h-64 space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Indexing Resource Library...</p>
-      </div>
-    );
-  }
-
-  const categories = [...new Set(downloads.map(item => item.category))];
-
   return (
-    <div className="container mx-auto p-4 md:p-8 space-y-12 max-w-6xl">
-      <PageHeader 
-        title="Tactical Resource Center"
-        description="Official standalone bridge releases and operational assets hosted via Box."
-        icon={Download}
-      />
-
-      {/* Primary Standalone Releases */}
-      <section className="space-y-6">
-          <div className="flex items-center space-x-4">
-              <Cpu className="w-6 h-6 text-primary" />
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter">Standalone Clients</h2>
-              <Separator className="flex-grow opacity-50" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Windows */}
-              <Card className="p-8 border-2 border-primary/20 bg-primary/5 rounded-[2rem] flex flex-col items-center text-center shadow-xl group hover:border-primary transition-all">
-                  <Monitor className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-bold uppercase italic">Windows PC</h3>
-                  <p className="text-xs text-muted-foreground mb-6">v5.3.0 | 64-bit EXE (Box)</p>
-                  <Button asChild className="w-full h-12 font-black italic rounded-xl shadow-lg">
-                      <a href="https://app.box.com/s/8dn32k55blx4isbtmu2pe9j4zpwn2vs9" target="_blank" rel="noopener noreferrer">GET INSTALLER</a>
-                  </Button>
-              </Card>
-
-              {/* Mac ARM */}
-              <Card className="p-8 border-2 border-primary/20 bg-primary/5 rounded-[2rem] flex flex-col items-center text-center shadow-xl group hover:border-primary transition-all">
-                  <Apple className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-bold uppercase italic">Mac Silicon</h3>
-                  <p className="text-xs text-muted-foreground mb-6">v5.3.0 | Apple ARM (Box)</p>
-                  <Button asChild className="w-full h-12 font-black italic rounded-xl shadow-lg">
-                      <a href="https://app.box.com/s/yr29vbkfgi58hbyhc2u062htvnw33qh1" target="_blank" rel="noopener noreferrer">GET INSTALLER</a>
-                  </Button>
-              </Card>
-
-              {/* Mac Intel */}
-              <Card className="p-8 border-2 border-primary/20 bg-primary/5 rounded-[2rem] flex flex-col items-center text-center shadow-xl group hover:border-primary transition-all">
-                  <Apple className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-bold uppercase italic">Mac Intel</h3>
-                  <p className="text-xs text-muted-foreground mb-6">v5.3.0 | Legacy Intel (Box)</p>
-                  <Button asChild variant="outline" className="w-full h-12 font-black italic rounded-xl border-2">
-                      <a href="https://app.box.com/s/2tlvlms9suw0bm62zo158y6dt5zg2ji0" target="_blank" rel="noopener noreferrer">GET INSTALLER</a>
-                  </Button>
-              </Card>
-          </div>
-      </section>
-
-      {/* Dynamic Introduction Content */}
-      {pageContent?.body && (
-        <Card className="bg-muted/30 border-2 rounded-3xl overflow-hidden">
-          <CardContent className="pt-8 px-8">
-            <SanitizedHTML 
-              html={pageContent.body} 
-              className="prose dark:prose-invert max-w-none text-muted-foreground" 
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* General Asset Registry */}
-      {downloads.length > 0 && (
-        <div className="space-y-16 pt-10">
-            {categories.map(category => (
-                <section key={category} className="space-y-6">
-                    <div className="flex items-center space-x-4">
-                        <Tag className="w-5 h-5 text-primary" />
-                        <h2 className="text-2xl font-black italic uppercase tracking-tight text-foreground">{category}</h2>
-                        <Separator className="flex-grow opacity-50" />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {downloads.filter(d => d.category === category).map(item => (
-                            <Card key={item.id} className="hover:border-primary transition-all group bg-card/40 backdrop-blur-sm border-2 rounded-2xl shadow-sm">
-                                <CardHeader className="p-6 pb-4">
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div className="space-y-1">
-                                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors leading-snug">{item.title}</CardTitle>
-                                            <CardDescription className="text-xs font-medium leading-relaxed italic">
-                                                {item.description || 'Standard operational resource.'}
-                                            </CardDescription>
-                                        </div>
-                                        <FileText className="w-6 h-6 text-muted-foreground" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-6 pt-0">
-                                    <Button asChild size="lg" className="w-full h-12 font-black italic uppercase shadow-lg rounded-xl">
-                                        <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                                            <Download className="w-4 h-4 mr-2" /> DOWNLOAD
-                                        </a>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
-            ))}
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-b from-primary/10 to-background border-b">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+            Professional Grade Plugins
+          </Badge>
+          <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tight mb-4">
+            Downloads & Plugins
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Connect your flight simulator to VirtualHEMS for real-time telemetry, 
+            mission tracking, and AI-powered dispatch communications.
+          </p>
         </div>
-      )}
+      </div>
 
-      <footer className="pt-32">
-        <Card className="bg-primary/5 border-2 border-primary/20 rounded-[3rem] overflow-hidden">
-            <CardContent className="p-12 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-                <div className="space-y-4">
-                    <h4 className="text-4xl font-black italic uppercase tracking-tighter leading-none">Support Development</h4>
-                    <p className="text-lg text-muted-foreground font-medium max-w-lg">HEMS OPS-CENTER is free and community-supported. Help us keep the link alive.</p>
+      <div className="container mx-auto px-4 py-12 space-y-16">
+        
+        {/* Quick Start */}
+        <section className="bg-primary/5 border-2 border-primary/20 rounded-3xl p-8">
+          <h2 className="text-2xl font-black uppercase mb-6 flex items-center gap-3">
+            <Settings className="w-6 h-6 text-primary" />
+            Quick Start Guide
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-black shrink-0">1</div>
+              <div>
+                <h3 className="font-bold">Download Plugin</h3>
+                <p className="text-sm text-muted-foreground">Get the plugin for your simulator (X-Plane or MSFS)</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-black shrink-0">2</div>
+              <div>
+                <h3 className="font-bold">Install & Launch</h3>
+                <p className="text-sm text-muted-foreground">Follow the installation steps, then start your simulator</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-black shrink-0">3</div>
+              <div>
+                <h3 className="font-bold">Connect & Fly</h3>
+                <p className="text-sm text-muted-foreground">Open VirtualHEMS web app, start a mission, and fly!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Simulator Plugins */}
+        <section>
+          <h2 className="text-3xl font-black uppercase mb-8 text-center">Simulator Plugins</h2>
+          
+          <Tabs defaultValue="xplane" className="w-full">
+            <TabsList className="grid w-full max-w-lg mx-auto grid-cols-2 mb-8">
+              <TabsTrigger value="xplane" className="text-lg font-bold">X-Plane 11/12</TabsTrigger>
+              <TabsTrigger value="msfs" className="text-lg font-bold">MSFS 2020/2024</TabsTrigger>
+            </TabsList>
+
+            {/* X-Plane Tab */}
+            <TabsContent value="xplane">
+              <Card className="border-2">
+                <CardHeader className="bg-blue-500/10 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                        <Plane className="w-8 h-8 text-blue-500" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">X-Plane Plugin v2.0</CardTitle>
+                        <CardDescription>Professional WebSocket Bridge for X-Plane 11 & 12</CardDescription>
+                      </div>
+                    </div>
+                    <Badge variant="default" className="bg-green-500">Ready</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-bold mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" /> Features
+                      </h4>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center gap-2">
+                          <Wifi className="w-4 h-4 text-muted-foreground" />
+                          Real-time 10Hz telemetry streaming
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Cpu className="w-4 h-4 text-muted-foreground" />
+                          Bidirectional WebSocket communication
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <FileCode className="w-4 h-4 text-muted-foreground" />
+                          FlyWithLua compatible (Lua script)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Settings className="w-4 h-4 text-muted-foreground" />
+                          Auto-reconnect & mission phase sync
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold mb-3">Requirements</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• X-Plane 11.50+ or X-Plane 12</li>
+                        <li>• FlyWithLua NG plugin installed</li>
+                        <li>• Port 8787 available (WebSocket)</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h4 className="font-bold mb-4">Download Options</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <Button asChild size="lg" className="gap-2">
+                        <a href="/downloads/HEMS_XPlane_Plugin_v2.zip" download>
+                          <Download className="w-5 h-5" />
+                          Download Plugin Package (.zip)
+                        </a>
+                      </Button>
+                      <Button asChild variant="outline" size="lg" className="gap-2">
+                        <a href="/downloads/hems-dispatch-xp.lua" download>
+                          <FileCode className="w-5 h-5" />
+                          Legacy Script Only (.lua)
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Accordion type="single" collapsible className="border rounded-xl">
+                    <AccordionItem value="install" className="border-none">
+                      <AccordionTrigger className="px-4 font-bold">
+                        Installation Instructions
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <ol className="space-y-3 text-sm">
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                            <span>Ensure FlyWithLua NG is installed in X-Plane</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                            <span>Download and extract the ZIP file</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                            <span>Copy the <code className="bg-muted px-1 rounded">HEMS_Bridge</code> folder to:<br/>
+                              <code className="bg-muted px-2 py-1 rounded text-xs block mt-1">X-Plane/Resources/plugins/FlyWithLua/Scripts/</code>
+                            </span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
+                            <span>Restart X-Plane - plugin auto-starts on port 8787</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
+                            <span>Start a mission in VirtualHEMS - telemetry streams automatically!</span>
+                          </li>
+                        </ol>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* MSFS Tab */}
+            <TabsContent value="msfs">
+              <Card className="border-2">
+                <CardHeader className="bg-purple-500/10 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center">
+                        <Monitor className="w-8 h-8 text-purple-500" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">MSFS SimConnect Plugin</CardTitle>
+                        <CardDescription>Native SimConnect SDK integration for MSFS 2020/2024</CardDescription>
+                      </div>
+                    </div>
+                    <Badge variant="default" className="bg-green-500">Ready</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-bold mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" /> Features
+                      </h4>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center gap-2">
+                          <Cpu className="w-4 h-4 text-muted-foreground" />
+                          Native SimConnect SDK integration
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Wifi className="w-4 h-4 text-muted-foreground" />
+                          WebSocket bridge on port 8788
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Settings className="w-4 h-4 text-muted-foreground" />
+                          Auto-detect MSFS installation
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Monitor className="w-4 h-4 text-muted-foreground" />
+                          System tray application
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold mb-3">Requirements</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• MSFS 2020 or MSFS 2024</li>
+                        <li>• Windows 10/11 (64-bit)</li>
+                        <li>• .NET 6.0 Runtime</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <h4 className="font-bold mb-4">Download</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <Button asChild size="lg" className="gap-2">
+                        <a href="/downloads/HEMS_MSFS_Plugin_v1.zip" download>
+                          <Download className="w-5 h-5" />
+                          Download MSFS Plugin (.zip)
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Accordion type="single" collapsible className="border rounded-xl">
+                    <AccordionItem value="install" className="border-none">
+                      <AccordionTrigger className="px-4 font-bold">
+                        Installation Instructions
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <ol className="space-y-3 text-sm">
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                            <span>Download and extract the ZIP file</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                            <span>Run <code className="bg-muted px-1 rounded">HEMS_MSFS_Bridge.exe</code></span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                            <span>The app will appear in your system tray</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
+                            <span>Launch MSFS - connection is automatic</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
+                            <span>Start a mission in VirtualHEMS!</span>
+                          </li>
+                        </ol>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </section>
+
+        {/* Desktop Apps */}
+        <section>
+          <h2 className="text-3xl font-black uppercase mb-8 text-center">Desktop Applications</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            
+            {/* Windows App */}
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <Monitor className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <CardTitle>Windows Desktop</CardTitle>
+                    <CardDescription>Standalone bridge application</CardDescription>
+                  </div>
                 </div>
-                <Button asChild size="lg" className="h-20 px-14 text-xl font-black italic uppercase shadow-2xl rounded-2xl bg-primary text-black">
-                    <Link to="/support">
-                        <Coffee className="w-8 h-8 mr-3" /> SUPPORT THE MISSION
-                    </Link>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600">Coming Soon</Badge>
+                <p className="text-sm text-muted-foreground">
+                  Native Windows application for direct simulator communication without browser dependency.
+                </p>
+                <Button disabled className="w-full gap-2">
+                  <Download className="w-4 h-4" /> Windows x64 (.exe)
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Mac App */}
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-500/20 rounded-xl flex items-center justify-center">
+                    <Apple className="w-6 h-6 text-gray-500" />
+                  </div>
+                  <div>
+                    <CardTitle>macOS Desktop</CardTitle>
+                    <CardDescription>Universal binary (Intel + Apple Silicon)</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-600">Coming Soon</Badge>
+                <p className="text-sm text-muted-foreground">
+                  Native macOS application supporting both Intel and Apple Silicon Macs.
+                </p>
+                <Button disabled className="w-full gap-2">
+                  <Download className="w-4 h-4" /> macOS Universal (.dmg)
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Mobile Apps */}
+        <section>
+          <h2 className="text-3xl font-black uppercase mb-8 text-center">Mobile Apps</h2>
+          <Card className="border-2 max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Smartphone className="w-8 h-8 text-green-500" />
+              </div>
+              <CardTitle className="text-2xl">iPad & Mobile EFB</CardTitle>
+              <CardDescription>Electronic Flight Bag companion app</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
+                <p className="text-sm">
+                  <strong>Good news!</strong> The VirtualHEMS web app is fully responsive and works great on iPad and mobile browsers. 
+                  Native apps are planned for enhanced features.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Button disabled variant="outline" className="h-14 gap-2">
+                  <Apple className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="text-xs text-muted-foreground">Coming to</div>
+                    <div className="font-bold">App Store</div>
+                  </div>
+                </Button>
+                <Button disabled variant="outline" className="h-14 gap-2">
+                  <Smartphone className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="text-xs text-muted-foreground">Coming to</div>
+                    <div className="font-bold">Google Play</div>
+                  </div>
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                For now, visit the web app on your iPad/tablet for the full EFB experience
+              </p>
             </CardContent>
-        </Card>
-      </footer>
+          </Card>
+        </section>
+
+        {/* Help Section */}
+        <section className="bg-muted/30 rounded-3xl p-8 text-center">
+          <h3 className="text-2xl font-black uppercase mb-4">Need Help?</h3>
+          <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+            Having trouble with installation or connectivity? Check out our documentation 
+            or reach out for support.
+          </p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Button variant="outline" asChild className="gap-2">
+              <a href="/documentation">
+                <FileCode className="w-4 h-4" /> Documentation
+              </a>
+            </Button>
+            <Button variant="outline" asChild className="gap-2">
+              <a href="https://github.com/virtualhems" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="w-4 h-4" /> GitHub
+              </a>
+            </Button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
