@@ -85,6 +85,7 @@ const App = () => (
               {/* EFB View (Authenticated but no Layout) */}
               <Route element={<AuthGuard />}>
                 <Route path="/cockpit/:id" element={<CockpitEFB />} />
+                <Route path="/efb" element={<EFBView />} />
               </Route>
 
               {/* Layout-wrapped Pages */}
