@@ -50,6 +50,7 @@ const operationSections: NavSection[] = [
             { href: '/helicopter-bases', label: 'HEMS Bases', icon: MapPin },
             { href: '/operational-map', label: 'Tactical Map', icon: Map },
             { href: '/hospital-scenery', label: 'LZ Visual Gallery', icon: Image },
+            { href: '/efb', label: 'iPad EFB View', icon: Activity },
             { href: '/local-bridge', label: 'Local Bridge Status', icon: Server }, // NEW LINK
         ],
     },
