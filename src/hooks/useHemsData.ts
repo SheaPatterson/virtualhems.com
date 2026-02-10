@@ -16,7 +16,7 @@ export const useHemsData = (): HemsDataState => {
       const response = await dataAPI.getHemsBases();
       return response.bases;
     },
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 10,
   });
 
   const hospitalsQuery = useQuery({
