@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <AssemblyName>HEMS_MSFS_Bridge</AssemblyName>
+    <Version>1.0.0</Version>
+    <Company>VirtualHEMS</Company>
+    <Product>HEMS MSFS Bridge</Product>
+    <Description>SimConnect telemetry bridge for VirtualHEMS</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.FlightSimulator.SimConnect" Version="11.0.62651.3" />
+    <PackageReference Include="Fleck" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>
