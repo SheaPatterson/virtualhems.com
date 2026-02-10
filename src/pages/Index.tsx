@@ -81,8 +81,8 @@ const Index = () => {
                             </Button>
                         )}
                         <Button asChild variant="outline" size="lg" className="text-lg h-16 px-14 border-2 font-black italic rounded-2xl bg-background/50 backdrop-blur-sm">
-                            <Link to="/documentation">
-                                <Cpu className="w-5 h-5 mr-2 text-primary" /> Technical Manual
+                            <Link to="/downloads">
+                                <Server className="w-5 h-5 mr-2 text-primary" /> Download Plugins
                             </Link>
                         </Button>
                     </div>
