@@ -137,3 +137,37 @@ export const usePilotSummary = (userId?: string) => {
   
   return { count, totalMinutes };
 };
+
+// Alias for backwards compatibility
+export const useMissionReport = useMission;
+
+// Mission management hook for admin/tracking pages
+export const useMissionManagement = () => {
+  const queryClient = useQueryClient();
+  const createMission = useCreateMission();
+  const updateTelemetry = useUpdateTelemetry();
+  const completeMission = useCompleteMission();
+  
+  const updateMissionPhase = async (missionId: string, phase: string) => {
+    return updateTelemetry.mutateAsync({
+      missionId,
+      telemetry: { phase }
+    });
+  };
+  
+  const cancelMission = async (missionId: string) => {
+    // For now, just complete it - we could add a proper cancel endpoint
+    return completeMission.mutateAsync(missionId);
+  };
+  
+  return {
+    createMission: createMission.mutateAsync,
+    updateTelemetry: updateTelemetry.mutateAsync,
+    completeMission: completeMission.mutateAsync,
+    updateMissionPhase,
+    cancelMission,
+    isCreating: createMission.isPending,
+    isUpdating: updateTelemetry.isPending,
+    isCompleting: completeMission.isPending
+  };
+};
