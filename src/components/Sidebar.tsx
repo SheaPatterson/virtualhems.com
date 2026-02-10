@@ -57,7 +57,7 @@ const operationSections: NavSection[] = [
         title: "Community",
         items: [
             { href: '/pilot-directory', label: 'Personnel Manifest', icon: Users },
-            { href: '/plugins', label: 'Integration Hub', icon: Code, public: true },
+            { href: '/downloads', label: 'Downloads & Plugins', icon: Code, public: true },
             { href: '/community', label: 'Crew Q&A Board', icon: MessageSquare },
             { href: '/support', label: 'Support the Dev', icon: Coffee, public: true },
         ],
