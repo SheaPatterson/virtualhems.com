@@ -171,3 +171,4 @@ export const useMissionManagement = () => {
     isCompleting: completeMission.isPending
   };
 };
+// Force rebuild: Tue Feb 10 20:04:45 UTC 2026
