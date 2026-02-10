@@ -7,11 +7,25 @@
       if (typeof global === 'undefined') { window.global = window; }
       if (typeof process === 'undefined') { window.process = { env: {} }; }
     </script>
+    
+    <!-- PWA Meta Tags -->
     <link rel="icon" type="image/png" href="/logo-main.png" />
     <link rel="apple-touch-icon" href="/logo-main.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HEMS Ops" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="HEMS Ops" />
+    <meta name="msapplication-TileColor" content="#f97316" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Viewport for iPad/Mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
     <title>HEMS SIMULATION | Tactical Operations Center</title>
+    <meta name="description" content="Professional HEMS flight simulation platform with real-time telemetry tracking and AI dispatch for X-Plane and MSFS" />
     
     <!-- Buy Me a Coffee Widget -->
     <script data-name="BMC-Widget" 
