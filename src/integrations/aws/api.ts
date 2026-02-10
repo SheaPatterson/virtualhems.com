@@ -214,9 +214,9 @@ export const missionsAPI = {
 };
 
 export const dataAPI = {
-  getHemsBases: async () => api.get<{ bases: HemsBase[] }>('/api/hems-bases'),
-  getHospitals: async () => api.get<{ hospitals: Hospital[] }>('/api/hospitals'),
-  getHelicopters: async () => api.get<{ helicopters: Helicopter[] }>('/api/helicopters')
+  getHemsBases: async () => api.getPublic<{ bases: HemsBase[] }>('/api/hems-bases'),
+  getHospitals: async () => api.getPublic<{ hospitals: Hospital[] }>('/api/hospitals'),
+  getHelicopters: async () => api.getPublic<{ helicopters: Helicopter[] }>('/api/helicopters')
 };
 
 export const dispatchAPI = {
