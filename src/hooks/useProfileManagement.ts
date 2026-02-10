@@ -1,102 +1,90 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthGuard';
-import { Profile } from './useProfiles';
+import { profilesAPI, UserProfile } from '@/integrations/aws/api';
 import { toast } from 'sonner';
 
-interface ProfileUpdateInput extends Partial<Omit<Profile, 'id' | 'updated_at' | 'api_key'>> {}
+// Re-export Profile type for backwards compatibility
+export type Profile = UserProfile;
 
-const fetchUserProfile = async (userId: string): Promise<Profile & { api_key: string } | null> => {
-  if (!userId) return null;
-
-  const { data: profile, error: pError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (pError && pError.code !== 'PGRST116') throw new Error(pError.message);
-
-  const { data: keyData, error: kError } = await supabase
-    .from('user_api_keys')
-    .select('api_key')
-    .eq('user_id', userId)
-    .single();
-
-  if (kError && kError.code !== 'PGRST116') throw new Error(kError.message);
-
-  return { 
-    ...profile, 
-    api_key: keyData?.api_key || 'NONE',
-    is_subscribed: true // Force premium access for all beta users
-  } as any;
-};
-
-const updateUserProfile = async (userId: string, data: ProfileUpdateInput): Promise<Profile> => {
-  const { data: updatedProfile, error } = await supabase
-    .from('profiles')
-    .update({
-      ...data,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId)
-    .select()
-    .single();
-
-  if (error) throw new Error(error.message);
-  return updatedProfile as Profile;
-};
-
-const rotateApiKey = async (userId: string): Promise<string> => {
-    const newKey = crypto.randomUUID();
-    const { data, error } = await supabase
-        .from('user_api_keys')
-        .update({ api_key: newKey })
-        .eq('user_id', userId)
-        .select('api_key')
-        .single();
-    
-    if (error) throw error;
-    return data.api_key;
-};
+interface ProfileUpdateInput {
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string;
+  location?: string;
+  bio?: string;
+  simulators?: string;
+  experience?: string;
+  social_links?: Record<string, string>;
+  email_public?: string;
+}
 
 export const useProfileManagement = () => {
-  const { user } = useAuth();
+  const { user, profile: authProfile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ['userProfile', user?.id];
 
   const profileQuery = useQuery({
     queryKey,
-    queryFn: () => fetchUserProfile(user?.id || ''),
+    queryFn: async () => {
+      // Use profile from auth context, which already has the data
+      return authProfile;
+    },
     enabled: !!user,
+    initialData: authProfile
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: ProfileUpdateInput) => updateUserProfile(user!.id, data),
-    onSuccess: () => {
+    mutationFn: async (data: ProfileUpdateInput) => {
+      await profilesAPI.update(data);
+      return data;
+    },
+    onSuccess: async () => {
+      await refreshProfile();
       queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
       toast.success("Personnel record updated.");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update profile.");
     }
   });
 
   const rotateKeyMutation = useMutation({
-      mutationFn: () => rotateApiKey(user!.id),
-      onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
-          toast.success("Security token rotated.");
-      }
+    mutationFn: async () => {
+      const result = await profilesAPI.rotateKey();
+      return result.api_key;
+    },
+    onSuccess: async () => {
+      await refreshProfile();
+      queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
+      toast.success("Security token rotated.");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to rotate key.");
+    }
   });
 
+  // Combine auth profile with any additional query data
+  const profile = authProfile ? {
+    ...authProfile,
+    id: authProfile.user_id,  // Backwards compatibility
+    api_key: authProfile.api_key || 'LOGIN_TO_VIEW',
+    is_subscribed: true  // All users get premium access
+  } : null;
+
   return {
-    profile: profileQuery.data,
+    profile,
     isLoading: profileQuery.isLoading,
     isUpdating: updateMutation.isPending,
     isRotatingKey: rotateKeyMutation.isPending,
     updateProfile: updateMutation.mutateAsync,
     rotateApiKey: rotateKeyMutation.mutateAsync,
-    initiateCheckout: async () => { toast.info("HEMS OPS-CENTER is free! Support the dev on Buy Me a Coffee."); },
-    initiateCustomerPortal: async () => { toast.info("Standalone access enabled for all personnel."); },
+    initiateCheckout: async () => { 
+      toast.info("HEMS OPS-CENTER is free! Support the dev on Buy Me a Coffee."); 
+    },
+    initiateCustomerPortal: async () => { 
+      toast.info("Standalone access enabled for all personnel."); 
+    },
     isInitiatingCheckout: false,
     isInitiatingPortal: false,
   };
