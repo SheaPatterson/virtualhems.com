@@ -3,8 +3,19 @@ import boto3
 import json
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+
+def convert_floats(obj):
+    """Convert floats to Decimal for DynamoDB"""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {k: convert_floats(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats(i) for i in obj]
+    return obj
 
 # Sample HEMS Bases
 HEMS_BASES = [
@@ -39,7 +50,8 @@ def seed_table(table_name, items):
     print(f"Seeding {table_name}...")
     for item in items:
         item['createdAt'] = datetime.now(timezone.utc).isoformat()
-        table.put_item(Item=item)
+        converted_item = convert_floats(item)
+        table.put_item(Item=converted_item)
     print(f"  Added {len(items)} items")
 
 if __name__ == '__main__':
