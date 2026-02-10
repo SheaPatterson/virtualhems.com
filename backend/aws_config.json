@@ -1,0 +1,15 @@
+{
+  "aws_region": "us-east-1",
+  "user_pool_id": "us-east-1_1c0V6g4OQ",
+  "user_pool_client_id": "682jtce3sr02pne6vf9f0tk8ak",
+  "identity_pool_id": "us-east-1:bf4ac589-860f-4dc7-aaf6-1ae23bd291bc",
+  "s3_bucket": "virtualhems-assets-223759445135",
+  "dynamodb_tables": {
+    "missions": "VirtualHEMS_Missions",
+    "telemetry": "VirtualHEMS_Telemetry",
+    "users": "VirtualHEMS_Users",
+    "hems_bases": "VirtualHEMS_HemsBases",
+    "hospitals": "VirtualHEMS_Hospitals",
+    "helicopters": "VirtualHEMS_Helicopters"
+  }
+}
