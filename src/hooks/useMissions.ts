@@ -1,93 +1,83 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { missionsAPI, Mission } from '@/integrations/aws/api';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MissionReport } from '@/data/hemsData';
 
-// Convert AWS Mission to MissionReport format for backwards compatibility
-const convertToMissionReport = (m: Mission): MissionReport => ({
-  missionId: m.mission_id,
-  callsign: m.callsign,
-  type: m.mission_type as any,
-  dateTime: m.created_at,
-  hemsBase: m.hems_base,
-  helicopter: m.helicopter,
-  crew: m.crew || [],
-  origin: m.origin,
-  pickup: m.pickup,
-  destination: m.destination,
-  patientAge: m.patient_age || null,
-  patientGender: m.patient_gender as any || '',
-  patientWeightLbs: m.patient_weight_lbs || null,
-  patientDetails: m.patient_details || null,
-  medicalResponse: null,
-  waypoints: m.waypoints || [],
-  liveData: {
-    weather: 'Clear',
-    mapUrl: '',
-    aerialViewUrl: ''
-  },
-  tracking: {
-    timeEnrouteMinutes: m.tracking?.timeEnrouteMinutes || 0,
-    fuelRemainingLbs: m.tracking?.fuelRemainingLbs || 0,
-    latitude: m.tracking?.latitude || 0,
-    longitude: m.tracking?.longitude || 0,
-    altitudeFt: m.tracking?.altitudeFt || 0,
-    groundSpeedKts: m.tracking?.groundSpeedKts || 0,
-    headingDeg: m.tracking?.headingDeg || 0,
-    verticalSpeedFtMin: m.tracking?.verticalSpeedFtMin || 0,
-    phase: m.tracking?.phase as any || 'Dispatch',
-    altitude: m.tracking?.altitudeFt || 0,
-    heading: m.tracking?.headingDeg || 0,
-    speedKnots: m.tracking?.groundSpeedKts || 0,
-    lastUpdate: m.tracking?.lastUpdate || Date.now()
-  },
-  status: m.status
-});
-
+// Fetch active missions from Supabase
 export const useActiveMissions = () => {
   return useQuery({
     queryKey: ['activeMissions'],
     queryFn: async () => {
-      const response = await missionsAPI.getActive();
-      return response.missions.map(convertToMissionReport);
+      const { data, error } = await supabase
+        .from('missions')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data?.map(mapDbToMissionReport) || [];
     },
-    refetchInterval: 5000, // Refresh every 5 seconds for live tracking
+    refetchInterval: 5000,
     staleTime: 2000
   });
 };
 
+// Fetch missions by user/status
 export const useMissions = (userId?: string, status?: string) => {
   return useQuery({
     queryKey: ['missions', userId, status],
     queryFn: async () => {
-      const response = await missionsAPI.getAll(status);
-      return response.missions.map(convertToMissionReport);
+      let query = supabase.from('missions').select('*');
+      
+      if (userId) query = query.eq('user_id', userId);
+      if (status) query = query.eq('status', status);
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) throw error;
+      return data?.map(mapDbToMissionReport) || [];
     },
     enabled: !!userId,
-    staleTime: 1000 * 60 // 1 minute
+    staleTime: 60000
   });
 };
 
+// Fetch single mission
 export const useMission = (missionId?: string) => {
   return useQuery({
     queryKey: ['mission', missionId],
     queryFn: async () => {
       if (!missionId) throw new Error('Mission ID required');
-      const response = await missionsAPI.getById(missionId);
-      return convertToMissionReport(response.mission);
+      const { data, error } = await supabase
+        .from('missions')
+        .select('*')
+        .eq('mission_id', missionId)
+        .single();
+
+      if (error) throw error;
+      return mapDbToMissionReport(data);
     },
     enabled: !!missionId,
     staleTime: 5000
   });
 };
 
+// Alias for backwards compatibility
+export const useMissionReport = useMission;
+
+// Create mission
 export const useCreateMission = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await missionsAPI.create(data);
-      return response;
+      const { data: result, error } = await supabase
+        .from('missions')
+        .insert(data)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeMissions'] });
@@ -100,12 +90,18 @@ export const useCreateMission = () => {
   });
 };
 
+// Update telemetry
 export const useUpdateTelemetry = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ missionId, telemetry }: { missionId: string; telemetry: any }) => {
-      return await missionsAPI.updateTelemetry(missionId, telemetry);
+      const { error } = await supabase
+        .from('missions')
+        .update({ tracking: telemetry, updated_at: new Date().toISOString() })
+        .eq('mission_id', missionId);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeMissions'] });
@@ -113,12 +109,18 @@ export const useUpdateTelemetry = () => {
   });
 };
 
+// Complete mission
 export const useCompleteMission = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (missionId: string) => {
-      return await missionsAPI.complete(missionId);
+      const { error } = await supabase
+        .from('missions')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('mission_id', missionId);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activeMissions'] });
@@ -138,10 +140,7 @@ export const usePilotSummary = (userId?: string) => {
   return { count, totalMinutes };
 };
 
-// Alias for backwards compatibility
-export const useMissionReport = useMission;
-
-// Mission management hook for admin/tracking pages
+// Mission management hook for admin/tracking pages  
 export const useMissionManagement = () => {
   const queryClient = useQueryClient();
   const createMission = useCreateMission();
@@ -156,7 +155,6 @@ export const useMissionManagement = () => {
   };
   
   const cancelMission = async (missionId: string) => {
-    // For now, just complete it - we could add a proper cancel endpoint
     return completeMission.mutateAsync(missionId);
   };
   
@@ -171,4 +169,40 @@ export const useMissionManagement = () => {
     isCompleting: completeMission.isPending
   };
 };
-// Force rebuild: Tue Feb 10 20:04:45 UTC 2026
+
+// Helper function to map database record to MissionReport
+const mapDbToMissionReport = (m: any): MissionReport => ({
+  missionId: m.mission_id,
+  callsign: m.callsign || '',
+  type: m.mission_type || 'Scene Call',
+  dateTime: m.created_at,
+  hemsBase: m.hems_base || {},
+  helicopter: m.helicopter || {},
+  crew: m.crew || [],
+  origin: m.origin || {},
+  pickup: m.pickup || {},
+  destination: m.destination || {},
+  patientAge: m.patient_age || null,
+  patientGender: m.patient_gender || '',
+  patientWeightLbs: m.patient_weight_lbs || null,
+  patientDetails: m.patient_details || null,
+  medicalResponse: m.medical_response || null,
+  waypoints: m.waypoints || [],
+  liveData: m.live_data || { weather: 'Clear', mapUrl: '', aerialViewUrl: '' },
+  tracking: {
+    timeEnrouteMinutes: m.tracking?.timeEnrouteMinutes || 0,
+    fuelRemainingLbs: m.tracking?.fuelRemainingLbs || 0,
+    latitude: m.tracking?.latitude || 0,
+    longitude: m.tracking?.longitude || 0,
+    altitudeFt: m.tracking?.altitudeFt || 0,
+    groundSpeedKts: m.tracking?.groundSpeedKts || 0,
+    headingDeg: m.tracking?.headingDeg || 0,
+    verticalSpeedFtMin: m.tracking?.verticalSpeedFtMin || 0,
+    phase: m.tracking?.phase || 'Dispatch',
+    altitude: m.tracking?.altitudeFt || 0,
+    heading: m.tracking?.headingDeg || 0,
+    speedKnots: m.tracking?.groundSpeedKts || 0,
+    lastUpdate: m.tracking?.lastUpdate || Date.now()
+  },
+  status: m.status || 'active'
+});
