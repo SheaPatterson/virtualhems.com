@@ -22,6 +22,7 @@ import Plugins from "./pages/Plugins";
 import DiscordCommunity from "./pages/DiscordCommunity";
 import DynamicPage from "./pages/DynamicPage"; // Reusable dynamic content page
 import NotFound from "./pages/NotFound";
+import EFBView from "./pages/EFBView"; // iPad EFB View
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
