@@ -17,6 +17,7 @@
     "build:bridge-ui": "vite build --mode bridge-ui && cpx \"dist/index.html\" \"public/downloads/hems-dispatch/ui\""
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.986.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -50,6 +51,7 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.45.0",
     "@tanstack/react-query": "^5.56.2",
+    "amazon-cognito-identity-js": "^6.3.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
