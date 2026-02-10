@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-02-10T20:15:53.487216",
+  "total_tests": 6,
+  "passed_tests": 5,
+  "success_rate": 0.8333333333333334,
+  "results": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "Config Endpoint",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "details": "Status: 200"
+    },
+    {
+      "test": "User Login",
+      "success": false,
+      "details": "Status: 401, Error: Please verify your email first"
+    },
+    {
+      "test": "Unauthorized Profile Access",
+      "success": true,
+      "details": "Status: 401"
+    },
+    {
+      "test": "Unauthorized Mission Access",
+      "success": true,
+      "details": "Status: 401"
+    }
+  ]
+}
