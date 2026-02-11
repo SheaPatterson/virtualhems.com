@@ -1,7 +1,10 @@
-# Disable Nixpacks auto-detection
-# This project uses Docker Compose for deployment
+# Force disable Nixpacks - use Docker Compose instead
 [build]
 skip = true
 
 [start]
 skip = true
+
+[variables]
+NIXPACKS_NO_CACHE = "1"
+NIXPACKS_SKIP_BUILD = "1"
