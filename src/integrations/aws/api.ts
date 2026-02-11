@@ -225,3 +225,20 @@ export const dispatchAPI = {
   generateTTS: async (text: string) =>
     api.post<{ audio_url: string }>('/api/dispatch/tts', { text })
 };
+
+export const atcAPI = {
+  contact: async (missionId: string, message: string, controllerType: string, airportCode?: string, frequency?: string) =>
+    api.post<{ 
+      success: boolean; 
+      response_text: string; 
+      controller_type: string;
+      airport_code?: string;
+      frequency?: string;
+    }>('/api/atc/contact', { 
+      mission_id: missionId, 
+      message, 
+      controller_type: controllerType,
+      airport_code: airportCode,
+      frequency: frequency
+    })
+};

@@ -49,6 +49,7 @@ namespace HEMS_MSFS_Bridge
         private const int WM_USER_SIMCONNECT = 0x0402;
         private bool _connected = false;
         private IntPtr _hwnd;
+        private AircraftData? _lastData;
 
         public event Action<AircraftData>? OnDataReceived;
         public event Action<bool>? OnConnectionChanged;
@@ -59,6 +60,11 @@ namespace HEMS_MSFS_Bridge
         public SimConnectManager(IntPtr hwnd)
         {
             _hwnd = hwnd;
+        }
+        
+        public AircraftData? GetCurrentData()
+        {
+            return _lastData;
         }
 
         public void Connect()
@@ -155,6 +161,7 @@ namespace HEMS_MSFS_Bridge
             if (data.dwRequestID == (uint)REQUESTS.AircraftData)
             {
                 var aircraftData = (AircraftData)data.dwData[0];
+                _lastData = aircraftData;
                 OnDataReceived?.Invoke(aircraftData);
             }
         }

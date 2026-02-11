@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mail, User, Linkedin, MessageCircle, Star, Clock, Zap } from 'lucide-react';
+import { Mail, User, Linkedin, MessageCircle, Star, Clock, Zap, MapPin } from 'lucide-react';
 import { Profile } from '@/hooks/useProfiles';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,6 +51,11 @@ const PilotCard: React.FC<PilotCardProps> = ({ profile }) => {
                         </div>
                         <div className="space-y-1">
                             <CardTitle className="text-2xl font-black tracking-tighter uppercase italic leading-none">{fullName}</CardTitle>
+                            {profile.location && (
+                                <p className="text-xs text-muted-foreground flex items-center">
+                                    <MapPin className="w-3 h-3 mr-1" /> {profile.location}
+                                </p>
+                            )}
                             <div className="flex flex-wrap gap-2">
                                 <Badge className={cn("text-[9px] uppercase font-black tracking-widest px-2 py-0 border-none", rank.color)}>
                                     {rank.title}
@@ -64,6 +69,33 @@ const PilotCard: React.FC<PilotCardProps> = ({ profile }) => {
                         </div>
                     </div>
                 </div>
+
+                {/* Bio Section */}
+                {profile.bio && (
+                    <div className="bg-muted/30 rounded-xl p-4 border border-border/30">
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                            {profile.bio.length > 150 ? `${profile.bio.substring(0, 150)}...` : profile.bio}
+                        </p>
+                    </div>
+                )}
+
+                {/* Experience & Equipment */}
+                {(profile.experience || profile.simulators) && (
+                    <div className="space-y-2">
+                        {profile.experience && (
+                            <div className="flex items-center text-xs">
+                                <span className="text-muted-foreground mr-2">Experience:</span>
+                                <span className="font-semibold text-primary">{profile.experience}</span>
+                            </div>
+                        )}
+                        {profile.simulators && (
+                            <div className="flex items-center text-xs">
+                                <span className="text-muted-foreground mr-2">Equipment:</span>
+                                <span className="font-semibold">{profile.simulators}</span>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Achievement Medal Strip on Card */}
                 {achievements.length > 0 && (

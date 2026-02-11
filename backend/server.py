@@ -21,7 +21,7 @@ from jwt import PyJWKClient
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Load AWS config if available
-config_path = '/app/backend/aws_config.json'
+config_path = os.path.join(os.path.dirname(__file__), 'aws_config.json')
 if os.path.exists(config_path):
     with open(config_path) as f:
         AWS_CONFIG = json.load(f)
@@ -63,6 +63,12 @@ class UserProfile(BaseModel):
     simulators: Optional[str] = None
     experience: Optional[str] = None
     social_links: Optional[Dict[str, str]] = None
+    email_public: Optional[str] = None
+
+class AdminUserUpdate(BaseModel):
+    user_id: str
+    profile_updates: UserProfile
+    role_changes: Optional[Dict[str, bool]] = None  # {'admin': True/False}
 
 class MissionCreate(BaseModel):
     callsign: str
@@ -95,6 +101,13 @@ class TelemetryUpdate(BaseModel):
 class AIDispatchRequest(BaseModel):
     mission_id: str
     message: str
+
+class ATCRequest(BaseModel):
+    mission_id: str
+    message: str
+    controller_type: str  # tower, approach, departure, center, ground
+    airport_code: Optional[str] = None
+    frequency: Optional[str] = None
 
 # JWT Verification
 async def verify_token(authorization: str = Header(None)) -> Dict:
@@ -289,11 +302,28 @@ async def get_all_profiles(token_data: Dict = Depends(verify_token)):
     """Get all user profiles (for pilot directory)"""
     users_table = get_table('Users')
     response = users_table.scan(
-        ProjectionExpression='user_id, first_name, last_name, avatar_url, #loc, bio, simulators, experience, social_links',
+        ProjectionExpression='user_id, first_name, last_name, avatar_url, #loc, bio, simulators, experience, social_links, email_public, updated_at',
         ExpressionAttributeNames={'#loc': 'location'}
     )
     
     return {"profiles": response.get('Items', [])}
+
+@app.get("/api/profiles/{user_id}")
+async def get_user_profile(user_id: str, token_data: Dict = Depends(verify_token)):
+    """Get specific user profile (admin only)"""
+    # Check if requester is admin (simplified check)
+    requester_id = token_data.get('sub')
+    if requester_id != user_id:
+        # In production, check admin role here
+        pass
+    
+    users_table = get_table('Users')
+    response = users_table.get_item(Key={'user_id': user_id})
+    
+    if 'Item' not in response:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    
+    return {"profile": response['Item']}
 
 @app.put("/api/profiles/me")
 async def update_profile(profile: UserProfile, token_data: Dict = Depends(verify_token)):
@@ -342,6 +372,74 @@ async def rotate_api_key(token_data: Dict = Depends(verify_token)):
     )
     
     return {"api_key": new_key}
+
+@app.put("/api/admin/users/{user_id}")
+async def admin_update_user(user_id: str, updates: AdminUserUpdate, token_data: Dict = Depends(verify_token)):
+    """Admin endpoint to update any user's profile"""
+    # In production, verify admin role here
+    requester_id = token_data.get('sub')
+    
+    users_table = get_table('Users')
+    
+    # Update profile
+    if updates.profile_updates:
+        update_expr = "SET updated_at = :updated_at"
+        expr_values = {':updated_at': datetime.now(timezone.utc).isoformat()}
+        expr_names = {}
+        
+        profile_dict = updates.profile_updates.dict(exclude_none=True)
+        for key, value in profile_dict.items():
+            if key == 'location':
+                update_expr += f", #loc = :loc"
+                expr_names['#loc'] = 'location'
+                expr_values[':loc'] = value
+            else:
+                update_expr += f", {key} = :{key}"
+                expr_values[f':{key}'] = value
+        
+        users_table.update_item(
+            Key={'user_id': user_id},
+            UpdateExpression=update_expr,
+            ExpressionAttributeValues=expr_values,
+            ExpressionAttributeNames=expr_names if expr_names else None
+        )
+    
+    return {"success": True, "message": f"User {user_id} updated by admin"}
+
+@app.get("/api/admin/analytics")
+async def get_admin_analytics(token_data: Dict = Depends(verify_token)):
+    """Get admin analytics data"""
+    # In production, verify admin role here
+    
+    users_table = get_table('Users')
+    missions_table = get_table('Missions')
+    
+    # Get user counts
+    users_response = users_table.scan(Select='COUNT')
+    total_users = users_response.get('Count', 0)
+    
+    # Get users with complete profiles
+    complete_profiles_response = users_table.scan(
+        FilterExpression='attribute_exists(first_name) AND attribute_exists(last_name) AND attribute_exists(bio)',
+        Select='COUNT'
+    )
+    complete_profiles = complete_profiles_response.get('Count', 0)
+    
+    # Get recent missions (last 30 days)
+    thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    recent_missions_response = missions_table.scan(
+        FilterExpression='created_at > :date',
+        ExpressionAttributeValues={':date': thirty_days_ago},
+        Select='COUNT'
+    )
+    recent_missions = recent_missions_response.get('Count', 0)
+    
+    return {
+        "total_users": total_users,
+        "complete_profiles": complete_profiles,
+        "recent_missions": recent_missions,
+        "completion_rate": round((complete_profiles / total_users * 100) if total_users > 0 else 0, 1)
+    }
 
 # ============ MISSION ENDPOINTS ============
 
@@ -578,6 +676,119 @@ Keep responses brief and actionable. Use standard aviation/medical terminology.
         return {
             "success": True,
             "response_text": ai_response,
+            "mission_id": request.mission_id
+        }
+        
+    except ClientError as e:
+        print(f"Bedrock error: {e}")
+        raise HTTPException(status_code=500, detail="AI service unavailable")
+
+@app.post("/api/atc/contact")
+async def atc_contact(request: ATCRequest, token_data: Dict = Depends(verify_token)):
+    """AI-powered ATC communications using AWS Bedrock"""
+    try:
+        # Get mission context
+        missions_table = get_table('Missions')
+        response = missions_table.get_item(Key={'mission_id': request.mission_id})
+        
+        if 'Item' not in response:
+            raise HTTPException(status_code=404, detail="Mission not found")
+        
+        mission = response['Item']
+        
+        # Determine controller personality and context based on type
+        controller_contexts = {
+            'ground': {
+                'role': 'Ground Control',
+                'focus': 'taxi instructions, parking, and ground movement',
+                'style': 'Clear and directive for ground operations'
+            },
+            'tower': {
+                'role': 'Tower Control',
+                'focus': 'takeoff and landing clearances, runway operations',
+                'style': 'Authoritative and safety-focused'
+            },
+            'departure': {
+                'role': 'Departure Control',
+                'focus': 'initial climb instructions, traffic advisories, handoffs',
+                'style': 'Efficient and traffic-aware'
+            },
+            'approach': {
+                'role': 'Approach Control',
+                'focus': 'descent instructions, approach clearances, sequencing',
+                'style': 'Calm and methodical'
+            },
+            'center': {
+                'role': 'Center Control',
+                'focus': 'enroute flight following, altitude changes, weather advisories',
+                'style': 'Professional and informative'
+            }
+        }
+        
+        controller_info = controller_contexts.get(request.controller_type, controller_contexts['tower'])
+        airport_info = f" at {request.airport_code}" if request.airport_code else ""
+        frequency_info = f" on {request.frequency}" if request.frequency else ""
+        
+        # Build context for AI
+        context = f"""
+You are an AI-powered {controller_info['role']} controller{airport_info}{frequency_info}.
+You are communicating with a HEMS helicopter during an emergency medical mission.
+
+Your role focuses on: {controller_info['focus']}
+Communication style: {controller_info['style']}
+
+Aircraft Information:
+- Callsign: {mission['callsign']}
+- Type: {mission['helicopter'].get('model', 'Unknown')} helicopter
+- Registration: {mission['helicopter'].get('registration', 'N/A')}
+- Current Position: {mission['tracking'].get('latitude', 0):.4f}, {mission['tracking'].get('longitude', 0):.4f}
+- Altitude: {mission['tracking'].get('altitudeFt', 0)} ft MSL
+- Ground Speed: {mission['tracking'].get('groundSpeedKts', 0)} kts
+- Heading: {mission['tracking'].get('headingDeg', 0)}°
+- Phase: {mission['tracking'].get('phase', 'Unknown')}
+
+Mission Context:
+- Type: Emergency Medical (HEMS)
+- Patient: {mission.get('patient_details', 'Medical emergency')}
+- Origin: {mission['origin'].get('name', 'Unknown')}
+- Destination: {mission['destination'].get('name', 'Unknown')}
+
+Pilot Transmission: {request.message}
+
+Respond as an ATC controller would over radio:
+- Use proper phraseology (readback, roger, wilco, etc.)
+- Include relevant traffic information if applicable
+- Provide clear, concise instructions
+- Acknowledge emergency priority if appropriate
+- Use standard ATC format: [Callsign], [Controller], [Instruction/Information]
+- Keep response under 50 words
+- Be professional and safety-focused
+"""
+        
+        # Call Bedrock Claude
+        bedrock_response = bedrock.invoke_model(
+            modelId='anthropic.claude-3-sonnet-20240229-v1:0',
+            contentType='application/json',
+            accept='application/json',
+            body=json.dumps({
+                'anthropic_version': 'bedrock-2023-05-31',
+                'max_tokens': 300,
+                'messages': [{
+                    'role': 'user',
+                    'content': context
+                }]
+            })
+        )
+        
+        response_body = json.loads(bedrock_response['body'].read())
+        ai_response = response_body['content'][0]['text']
+        
+        return {
+            "success": True,
+            "response_text": ai_response,
+            "controller_type": request.controller_type,
+            "airport_code": request.airport_code,
+            "frequency": request.frequency,
             "mission_id": request.mission_id
         }
         

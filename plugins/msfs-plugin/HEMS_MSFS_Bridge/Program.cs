@@ -27,7 +27,7 @@ namespace HEMS_MSFS_Bridge
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Program());
+            Application.Run(new MainWindow());
         }
 
         public Program()

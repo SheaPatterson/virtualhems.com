@@ -90,14 +90,19 @@ const Downloads = () => {
                         <Plane className="w-8 h-8 text-blue-500" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">X-Plane Plugin v2.0</CardTitle>
-                        <CardDescription>Professional WebSocket Bridge for X-Plane 11 & 12</CardDescription>
+                        <CardTitle className="text-2xl">X-Plane Plugin v3.0</CardTitle>
+                        <CardDescription>Interactive UI with Direct API Connection - No Bridge App Needed!</CardDescription>
                       </div>
                     </div>
                     <Badge variant="default" className="bg-green-500">Ready</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      🎉 New in v3.0: Interactive in-simulator UI! Select missions, manage phases, and view live telemetry without leaving X-Plane.
+                    </p>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-bold mb-3 flex items-center gap-2">
@@ -105,20 +110,24 @@ const Downloads = () => {
                       </h4>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center gap-2">
-                          <Wifi className="w-4 h-4 text-muted-foreground" />
-                          Real-time 10Hz telemetry streaming
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Cpu className="w-4 h-4 text-muted-foreground" />
-                          Bidirectional WebSocket communication
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <FileCode className="w-4 h-4 text-muted-foreground" />
-                          FlyWithLua compatible (Lua script)
+                          <Monitor className="w-4 h-4 text-muted-foreground" />
+                          Interactive in-sim UI window
                         </li>
                         <li className="flex items-center gap-2">
                           <Settings className="w-4 h-4 text-muted-foreground" />
-                          Auto-reconnect & mission phase sync
+                          Mission selection from active missions
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Cpu className="w-4 h-4 text-muted-foreground" />
+                          Phase management (Dispatch → Complete)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Wifi className="w-4 h-4 text-muted-foreground" />
+                          Live telemetry display (altitude, speed, fuel)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <FileCode className="w-4 h-4 text-muted-foreground" />
+                          Direct REST API connection (no bridge app!)
                         </li>
                       </ul>
                     </div>
@@ -126,8 +135,9 @@ const Downloads = () => {
                       <h4 className="font-bold mb-3">Requirements</h4>
                       <ul className="space-y-1 text-sm text-muted-foreground">
                         <li>• X-Plane 11.50+ or X-Plane 12</li>
-                        <li>• FlyWithLua NG plugin installed</li>
-                        <li>• Port 8787 available (WebSocket)</li>
+                        <li>• FlyWithLua NG plugin</li>
+                        <li>• LuaSocket library (for HTTP)</li>
+                        <li>• VirtualHEMS backend running</li>
                       </ul>
                     </div>
                   </div>
@@ -159,25 +169,33 @@ const Downloads = () => {
                         <ol className="space-y-3 text-sm">
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                            <span>Ensure FlyWithLua NG is installed in X-Plane</span>
+                            <span>Install FlyWithLua NG plugin in X-Plane</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                            <span>Download and extract the ZIP file</span>
+                            <span>Install LuaSocket library (see documentation for your OS)</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                            <span>Copy the <code className="bg-muted px-1 rounded">HEMS_Bridge</code> folder to:<br/>
-                              <code className="bg-muted px-2 py-1 rounded text-xs block mt-1">X-Plane/Resources/plugins/FlyWithLua/Scripts/</code>
-                            </span>
+                            <span>Download and extract the plugin ZIP file</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
-                            <span>Restart X-Plane - plugin auto-starts on port 8787</span>
+                            <span>Copy <code className="bg-muted px-1 rounded">init.lua</code> to:<br/>
+                              <code className="bg-muted px-2 py-1 rounded text-xs block mt-1">X-Plane/Resources/plugins/FlyWithLua/Scripts/HEMS_Bridge/</code>
+                            </span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
-                            <span>Start a mission in VirtualHEMS - telemetry streams automatically!</span>
+                            <span>Restart X-Plane - plugin loads automatically</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">6</span>
+                            <span>Open HEMS window: Plugins → FlyWithLua → Macros → "HEMS Bridge: Toggle Window"</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">7</span>
+                            <span>Click "Refresh Missions" to load active missions, select one, and click "Start Mission"!</span>
                           </li>
                         </ol>
                       </AccordionContent>
@@ -197,14 +215,19 @@ const Downloads = () => {
                         <Monitor className="w-8 h-8 text-purple-500" />
                       </div>
                       <div>
-                        <CardTitle className="text-2xl">MSFS SimConnect Plugin</CardTitle>
-                        <CardDescription>Native SimConnect SDK integration for MSFS 2020/2024</CardDescription>
+                        <CardTitle className="text-2xl">MSFS Plugin v3.0</CardTitle>
+                        <CardDescription>Full Windows Application with Interactive UI - Direct API Connection!</CardDescription>
                       </div>
                     </div>
                     <Badge variant="default" className="bg-green-500">Ready</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
+                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                      🎉 New in v3.0: Full Windows application with mission selection, phase management, live telemetry display, and activity logs!
+                    </p>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-bold mb-3 flex items-center gap-2">
@@ -212,20 +235,28 @@ const Downloads = () => {
                       </h4>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-center gap-2">
+                          <Monitor className="w-4 h-4 text-muted-foreground" />
+                          Full Windows application UI
+                        </li>
+                        <li className="flex items-center gap-2">
                           <Cpu className="w-4 h-4 text-muted-foreground" />
                           Native SimConnect SDK integration
                         </li>
                         <li className="flex items-center gap-2">
-                          <Wifi className="w-4 h-4 text-muted-foreground" />
-                          WebSocket bridge on port 8788
-                        </li>
-                        <li className="flex items-center gap-2">
                           <Settings className="w-4 h-4 text-muted-foreground" />
-                          Auto-detect MSFS installation
+                          Mission selection and management
                         </li>
                         <li className="flex items-center gap-2">
-                          <Monitor className="w-4 h-4 text-muted-foreground" />
-                          System tray application
+                          <Wifi className="w-4 h-4 text-muted-foreground" />
+                          Live telemetry display (altitude, speed, fuel)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <FileCode className="w-4 h-4 text-muted-foreground" />
+                          Direct REST API connection (no bridge app!)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                          Activity log with real-time updates
                         </li>
                       </ul>
                     </div>
@@ -234,7 +265,8 @@ const Downloads = () => {
                       <ul className="space-y-1 text-sm text-muted-foreground">
                         <li>• MSFS 2020 or MSFS 2024</li>
                         <li>• Windows 10/11 (64-bit)</li>
-                        <li>• .NET 6.0 Runtime</li>
+                        <li>• .NET 6.0 or later</li>
+                        <li>• VirtualHEMS backend running</li>
                       </ul>
                     </div>
                   </div>
@@ -260,23 +292,31 @@ const Downloads = () => {
                         <ol className="space-y-3 text-sm">
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                            <span>Download and extract the ZIP file</span>
+                            <span>Ensure .NET 6.0 or later is installed (download from Microsoft if needed)</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                            <span>Run <code className="bg-muted px-1 rounded">HEMS_MSFS_Bridge.exe</code></span>
+                            <span>Download and extract the plugin ZIP file</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                            <span>The app will appear in your system tray</span>
+                            <span>Launch MSFS and load any helicopter</span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">4</span>
-                            <span>Launch MSFS - connection is automatic</span>
+                            <span>Run <code className="bg-muted px-1 rounded">HEMS_MSFS_Bridge.exe</code></span>
                           </li>
                           <li className="flex gap-3">
                             <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">5</span>
-                            <span>Start a mission in VirtualHEMS!</span>
+                            <span>Main window appears - verify "SimConnect: Connected" shows green</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">6</span>
+                            <span>Click "Refresh Missions" to load active missions</span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0">7</span>
+                            <span>Select a mission and click "Start Mission" - telemetry begins streaming!</span>
                           </li>
                         </ol>
                       </AccordionContent>

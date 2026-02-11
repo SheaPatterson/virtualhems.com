@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { FileText, Loader2, Shield, Users, Activity, Zap, MapPin, PlaneTakeoff, Clock, Megaphone, ShieldCheck, Hospital, TrendingUp, Wrench } from 'lucide-react';
 import { useConfig } from '@/hooks/useConfig';
 import AdminStatCard from '@/components/admin/AdminStatCard';
+import UserAnalytics from '@/components/admin/UserAnalytics';
 import { Separator } from '@/components/ui/separator';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,6 +101,15 @@ const AdminOverview = () => {
         <AdminStatCard title="Fleet Strength" value={stats?.aircraft || 0} icon={PlaneTakeoff} description="Registered active airframes" />
         <AdminStatCard title="Avg. Performance" value={`${stats?.avgScore || 0}%`} icon={TrendingUp} description="Institutional performance metric" />
         <AdminStatCard title="AOG Aircraft" value={stats?.aogCount || 0} icon={Wrench} description="Aircraft On Ground (Technical Alert)" />
+      </div>
+
+      {/* User Analytics Section */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-bold flex items-center">
+          <Users className="w-5 h-5 mr-2 text-primary" />
+          User Management Analytics
+        </h3>
+        <UserAnalytics />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

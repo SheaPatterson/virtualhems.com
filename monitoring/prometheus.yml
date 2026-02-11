@@ -1,0 +1,46 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # VirtualHEMS Backend
+  - job_name: 'virtualhems-backend'
+    static_configs:
+      - targets: ['backend:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # VirtualHEMS WebSocket
+  - job_name: 'virtualhems-websocket'
+    static_configs:
+      - targets: ['websocket:8787']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Nginx metrics (if nginx-prometheus-exporter is installed)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['frontend:9113']
+    scrape_interval: 30s
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # Docker metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    scrape_interval: 30s

@@ -5,6 +5,7 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { MissionReport as IMissionReport } from '@/data/hemsData';
 import { Fuel, Loader2, Wind, CheckCircle2, QrCode, TrendingUp, TrendingDown, ChevronDown, ArrowLeft, Clock } from 'lucide-react';
 import DispatcherChat from '@/components/DispatcherChat';
+import ATCChat from '@/components/ATCChat';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ const MissionTracking = () => {
     const [report, setReport] = useState<IMissionReport | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isDebriefOpen, setIsDebriefOpen] = useState(false);
+    const [activeCommsTab, setActiveCommsTab] = useState<'dispatch' | 'atc'>('dispatch');
     
     const { updateStatus, isUpdating } = useMissionManagement();
     const efbUrl = `${window.location.origin}/cockpit/${id}`;
@@ -207,8 +209,36 @@ const MissionTracking = () => {
                         <HudItem label="Altitude" value={report.tracking?.altitudeFt?.toLocaleString() || '---'} unit="FT" icon={Wind} />
                         <HudItem label="Fuel State" value={report.tracking?.fuelRemainingLbs?.toLocaleString() || '---'} unit="LB" icon={Fuel} status={fuelStatus} />
                     </div>
-                    <div className="flex-grow min-h-[200px]">
-                        <DispatcherChat missionReport={report} />
+                    
+                    {/* Communications Tabs */}
+                    <div className="flex-grow min-h-[200px] flex flex-col">
+                        <div className="flex gap-2 mb-2">
+                            <Button
+                                variant={activeCommsTab === 'dispatch' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setActiveCommsTab('dispatch')}
+                                className="flex-1"
+                            >
+                                Dispatch
+                            </Button>
+                            <Button
+                                variant={activeCommsTab === 'atc' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setActiveCommsTab('atc')}
+                                className="flex-1"
+                            >
+                                ATC
+                            </Button>
+                        </div>
+                        
+                        {activeCommsTab === 'dispatch' ? (
+                            <DispatcherChat missionReport={report} />
+                        ) : (
+                            <ATCChat 
+                                missionId={report.missionId} 
+                                callsign={report.callsign}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,0 +1,151 @@
+{
+  "name": "virtualhems",
+  "description": "Professional HEMS Simulation Platform with AI-powered dispatch and ATC communications",
+  "version": "1.0.0",
+  "type": "compose",
+  "composeFile": "docker-compose.dokploy.yml",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/virtualhems.git",
+    "branch": "main",
+    "buildPath": "."
+  },
+  "domains": [
+    {
+      "host": "${DOMAIN}",
+      "https": true,
+      "www": true,
+      "service": "frontend"
+    },
+    {
+      "host": "api.${DOMAIN}",
+      "https": true,
+      "service": "backend"
+    },
+    {
+      "host": "ws.${DOMAIN}",
+      "https": true,
+      "service": "websocket"
+    },
+    {
+      "host": "redis.${DOMAIN}",
+      "https": true,
+      "service": "redis-commander",
+      "auth": true
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "ENVIRONMENT": "production",
+    "WORKERS": "4",
+    "MAX_CONNECTIONS": "1000"
+  },
+  "secrets": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "COGNITO_USER_POOL_ID",
+    "COGNITO_CLIENT_ID",
+    "S3_BUCKET",
+    "POSTGRES_PASSWORD",
+    "REDIS_COMMANDER_USER",
+    "REDIS_COMMANDER_PASSWORD"
+  ],
+  "healthChecks": {
+    "frontend": {
+      "path": "/health",
+      "interval": 30,
+      "timeout": 10,
+      "retries": 3
+    },
+    "backend": {
+      "path": "/api/health",
+      "interval": 30,
+      "timeout": 10,
+      "retries": 3
+    },
+    "websocket": {
+      "port": 8787,
+      "interval": 30,
+      "timeout": 10,
+      "retries": 3
+    }
+  },
+  "resources": {
+    "frontend": {
+      "memory": "512M",
+      "cpu": "0.5"
+    },
+    "backend": {
+      "memory": "2G",
+      "cpu": "2.0"
+    },
+    "websocket": {
+      "memory": "512M",
+      "cpu": "0.5"
+    },
+    "postgres": {
+      "memory": "1G",
+      "cpu": "0.5"
+    },
+    "redis": {
+      "memory": "1G",
+      "cpu": "0.5"
+    }
+  },
+  "volumes": [
+    {
+      "name": "postgres_data",
+      "mountPath": "/var/lib/postgresql/data",
+      "service": "postgres"
+    },
+    {
+      "name": "redis_data",
+      "mountPath": "/data",
+      "service": "redis"
+    }
+  ],
+  "monitoring": {
+    "enabled": true,
+    "metrics": [
+      "cpu",
+      "memory",
+      "disk",
+      "network"
+    ],
+    "alerts": {
+      "cpu": {
+        "threshold": 80,
+        "duration": "5m"
+      },
+      "memory": {
+        "threshold": 85,
+        "duration": "5m"
+      },
+      "disk": {
+        "threshold": 90,
+        "duration": "10m"
+      }
+    }
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention": "30d",
+    "volumes": [
+      "postgres_data",
+      "redis_data"
+    ]
+  },
+  "scaling": {
+    "frontend": {
+      "min": 1,
+      "max": 3,
+      "targetCPU": 70
+    },
+    "backend": {
+      "min": 1,
+      "max": 4,
+      "targetCPU": 75
+    }
+  }
+}

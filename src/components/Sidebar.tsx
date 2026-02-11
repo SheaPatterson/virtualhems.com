@@ -5,9 +5,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
     Zap, History, FileText, Users, MapPin, Settings,
-    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, ShieldAlert, Coffee, Server
+    LayoutDashboard, Hospital, Code, MessageSquare, Image, Satellite, Map, Activity, Crosshair, Shield, Megaphone, BookOpen, Plane, Book, ShieldAlert, Coffee, Server, Brain
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from './AuthGuard'; 
 import { useActiveMissions } from '@/hooks/useMissions';
@@ -59,6 +60,7 @@ const operationSections: NavSection[] = [
         items: [
             { href: '/pilot-directory', label: 'Personnel Manifest', icon: Users },
             { href: '/downloads', label: 'Downloads & Plugins', icon: Code, public: true },
+            { href: '/ai-features', label: 'AI Communications', icon: Brain, public: true },
             { href: '/community', label: 'Crew Q&A Board', icon: MessageSquare },
             { href: '/support', label: 'Support the Dev', icon: Coffee, public: true },
         ],
@@ -182,13 +184,21 @@ const Sidebar = () => {
 
             {user && (
                 <div className="mt-auto pt-4 border-t border-border/50 space-y-4">
-                    <Link to="/user" className="flex items-center space-x-3 p-2 rounded-xl hover:bg-muted/50 transition-colors">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
-                            <Users className="w-4 h-4 text-primary" />
-                        </div>
+                    <Link to="/user" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-muted/50 transition-colors group">
+                        <Avatar className="w-10 h-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+                            <AvatarImage src={user.user_metadata?.avatar_url} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                                {user.user_metadata?.first_name?.[0]}{user.user_metadata?.last_name?.[0]}
+                            </AvatarFallback>
+                        </Avatar>
                         <div className="flex-grow overflow-hidden">
-                            <p className="text-[10px] font-black uppercase tracking-tighter truncate text-foreground">Pilot Profile</p>
-                            <p className="text-[9px] text-muted-foreground truncate">{user.email}</p>
+                            <p className="text-sm font-bold truncate text-foreground">
+                                {user.user_metadata?.first_name && user.user_metadata?.last_name 
+                                    ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                                    : 'Complete Profile'
+                                }
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                     </Link>
                 </div>

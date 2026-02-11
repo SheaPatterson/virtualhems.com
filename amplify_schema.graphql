@@ -1,0 +1,147 @@
+type Profile @model @auth(rules: [{allow: owner}, {allow: private, operations: [read]}]) {
+  id: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  avatarUrl: String
+  location: String
+  bio: String
+  simulators: String
+  experience: String
+  socialLinks: AWSJSON
+  apiKey: String
+  isAdmin: Boolean @default(value: "false")
+  isSubscribed: Boolean @default(value: "true")
+  missions: [Mission] @hasMany(indexName: "byUser", fields: ["id"])
+  achievements: [Achievement] @hasMany(indexName: "byUser", fields: ["id"])
+  communityPosts: [CommunityPost] @hasMany(indexName: "byUser", fields: ["id"])
+}
+
+type Mission @model @auth(rules: [{allow: owner}, {allow: private, operations: [read]}]) {
+  id: ID!
+  missionId: String! @index(name: "byMissionId", queryField: "missionByMissionId")
+  userId: ID! @index(name: "byUser")
+  callsign: String!
+  missionType: String!
+  hemsBase: AWSJSON!
+  helicopter: AWSJSON!
+  crew: AWSJSON!
+  origin: AWSJSON!
+  pickup: AWSJSON!
+  destination: AWSJSON!
+  patientAge: Int
+  patientGender: String
+  patientWeightLbs: Int
+  patientDetails: String
+  medicalResponse: String
+  waypoints: AWSJSON!
+  liveData: AWSJSON
+  tracking: AWSJSON!
+  status: MissionStatus! @default(value: "active")
+  performanceScore: Float
+  radioLogs: [MissionRadioLog] @hasMany(indexName: "byMission", fields: ["missionId"])
+}
+
+enum MissionStatus {
+  active
+  completed
+  cancelled
+}
+
+type HemsBase @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  name: String!
+  location: String!
+  faaIdentifier: String
+  latitude: Float!
+  longitude: Float!
+  contact: String
+  helicopterId: ID
+  scenery: BaseScenery @hasOne
+}
+
+type Hospital @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  name: String!
+  city: String!
+  faaIdentifier: String
+  latitude: Float!
+  longitude: Float!
+  isTraumaCenter: Boolean!
+  traumaLevel: Int
+  scenery: HospitalScenery @hasOne
+}
+
+type Helicopter @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  model: String!
+  registration: String!
+  fuelCapacityLbs: Float!
+  cruiseSpeedKts: Float!
+  fuelBurnRateLbHr: Float!
+  maintenanceStatus: MaintenanceStatus!
+  imageUrl: String
+}
+
+enum MaintenanceStatus {
+  FMC
+  AOG
+}
+
+type HospitalScenery @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  hospitalId: ID! @index(name: "byHospital")
+  imageUrls: [String]!
+  description: String
+}
+
+type BaseScenery @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  baseId: ID! @index(name: "byBase")
+  imageUrls: [String]!
+  description: String
+}
+
+type CommunityPost @model @auth(rules: [{allow: owner}, {allow: private, operations: [read]}]) {
+  id: ID!
+  userId: ID! @index(name: "byUser")
+  title: String!
+  content: String!
+}
+
+type IncidentReport @model @auth(rules: [{allow: owner}, {allow: private, operations: [read]}]) {
+  id: ID!
+  userId: ID!
+  status: String!
+  resolution: String
+}
+
+type Achievement @model @auth(rules: [{allow: owner}, {allow: private, operations: [read]}]) {
+  id: ID!
+  userId: ID! @index(name: "byUser")
+  type: String!
+  earnedAt: AWSDateTime!
+}
+
+type MissionRadioLog @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  missionId: String! @index(name: "byMission")
+  sender: String!
+  message: String!
+  callsign: String
+  timestamp: AWSDateTime!
+}
+
+type GlobalDispatchLog @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  sender: String!
+  message: String!
+  timestamp: AWSDateTime!
+}
+
+type Content @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  slug: String! @index(name: "bySlug", queryField: "contentBySlug")
+  title: String!
+  body: String!
+}

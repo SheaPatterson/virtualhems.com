@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Loader2, Shield, Search, Trash2, Mail, MoreHorizontal, ShieldCheck } from 'lucide-react';
+import { Users, Loader2, Shield, Search, Trash2, Mail, MoreHorizontal, ShieldCheck, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import PageHeader from '@/components/PageHeader';
+import UserDetailModal from '@/components/admin/UserDetailModal';
+import BulkUserActions from '@/components/admin/BulkUserActions';
 
 // Fetch users with their profiles and roles
 const fetchUsersWithRoles = async () => {
@@ -25,6 +27,10 @@ const fetchUsersWithRoles = async () => {
             last_name, 
             avatar_url, 
             email_public,
+            location,
+            bio,
+            experience,
+            simulators,
             updated_at
         `);
 
@@ -46,6 +52,8 @@ const AdminUsers = () => {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [userToDelete, setUserToDelete] = useState<string | null>(null);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [showUserDetail, setShowUserDetail] = useState(false);
 
     const { data: users, isLoading } = useQuery({ 
         queryKey: ['adminUsersMaster'], 
@@ -105,6 +113,9 @@ const AdminUsers = () => {
                 }
             />
 
+            {/* Bulk Actions */}
+            <BulkUserActions />
+
             <Card>
                 <CardHeader className="pb-4">
                     <div className="relative">
@@ -140,11 +151,16 @@ const AdminUsers = () => {
                                         </Avatar>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col space-y-1">
                                             <span className="font-bold">{u.fullName}</span>
                                             {u.email_public && (
                                                 <span className="text-xs text-muted-foreground flex items-center">
                                                     <Mail className="w-3 h-3 mr-1" /> {u.email_public}
+                                                </span>
+                                            )}
+                                            {u.location && (
+                                                <span className="text-xs text-primary flex items-center">
+                                                    <MapPin className="w-3 h-3 mr-1" /> {u.location}
                                                 </span>
                                             )}
                                         </div>
@@ -170,6 +186,12 @@ const AdminUsers = () => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => {
+                                                    setSelectedUser(u);
+                                                    setShowUserDetail(true);
+                                                }}>
+                                                    View Details
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => navigator.clipboard.writeText(u.id)}>
                                                     Copy User ID
                                                 </DropdownMenuItem>
@@ -218,6 +240,31 @@ const AdminUsers = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <UserDetailModal
+                user={selectedUser}
+                open={showUserDetail}
+                onOpenChange={setShowUserDetail}
+                currentUserId={currentUser?.id}
+                onMakeAdmin={() => {
+                    if (selectedUser) {
+                        roleMutation.mutate({ userId: selectedUser.id, action: 'grant' });
+                        setShowUserDetail(false);
+                    }
+                }}
+                onRevokeAdmin={() => {
+                    if (selectedUser) {
+                        roleMutation.mutate({ userId: selectedUser.id, action: 'revoke' });
+                        setShowUserDetail(false);
+                    }
+                }}
+                onDeleteUser={() => {
+                    if (selectedUser) {
+                        setUserToDelete(selectedUser.id);
+                        setShowUserDetail(false);
+                    }
+                }}
+            />
         </div>
     );
 };

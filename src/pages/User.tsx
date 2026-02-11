@@ -87,8 +87,18 @@ const UserProfilePage = () => {
                 </div>
             </div>
             <div>
-                <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none">{formData.first_name} {formData.last_name}</h1>
+                <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none">
+                    {formData.first_name || formData.last_name ? 
+                        `${formData.first_name} ${formData.last_name}` : 
+                        'Complete Your Profile'
+                    }
+                </h1>
                 <p className="text-muted-foreground font-mono text-sm mt-1">{user?.email}</p>
+                {formData.location && (
+                    <p className="text-primary text-sm font-bold flex items-center mt-1">
+                        <MapPin className="w-4 h-4 mr-1" /> {formData.location}
+                    </p>
+                )}
             </div>
         </div>
         <div className="bg-muted p-4 rounded-xl border flex flex-col space-y-2">
@@ -170,8 +180,19 @@ const UserProfilePage = () => {
                           <Input id="simulators" value={formData.simulators} onChange={(e) => setFormData({...formData, simulators: e.target.value})} placeholder="e.g. X-Plane 12, VR, Virpil Controls" disabled={isUpdating} />
                       </div>
                       <div className="space-y-2">
-                          <Label htmlFor="bio">Pilot Biography</Label>
-                          <Textarea id="bio" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} placeholder="Tell the community about your flight history..." rows={4} disabled={isUpdating} />
+                          <Label htmlFor="bio">Professional Biography</Label>
+                          <Textarea 
+                            id="bio" 
+                            value={formData.bio} 
+                            onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                            placeholder="Share your aviation background, certifications, specialties, and what drives your passion for HEMS operations..." 
+                            rows={5} 
+                            disabled={isUpdating} 
+                            className="resize-none"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            This appears on your public pilot card. Share your experience, certifications, and what makes you unique.
+                          </p>
                       </div>
                   </CardContent>
               </Card>

@@ -20,6 +20,7 @@ import Downloads from "./pages/Downloads";
 import FlightPlanning from "./pages/FlightPlanning";
 import Plugins from "./pages/Plugins";
 import DiscordCommunity from "./pages/DiscordCommunity";
+import AIFeatures from "./pages/AIFeatures";
 import DynamicPage from "./pages/DynamicPage"; // Reusable dynamic content page
 import NotFound from "./pages/NotFound";
 import EFBView from "./pages/EFBView"; // iPad EFB View
@@ -93,6 +94,7 @@ const App = () => (
                 {/* Public Info */}
                 <Route path="/documentation" element={<Documentation />} />
                 <Route path="/downloads" element={<Downloads />} />
+                <Route path="/ai-features" element={<AIFeatures />} />
                 <Route path="/flight-planning" element={<FlightPlanning />} />
                 <Route path="/plugins" element={<Plugins />} />
                 <Route path="/discord" element={<DiscordCommunity />} />
