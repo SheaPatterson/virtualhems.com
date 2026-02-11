@@ -4,17 +4,17 @@
 ## 📋 Pre-Deployment Checklist
 
 ### **✅ VPS Information**
-- [ ] VPS IP Address: `_________________`
-- [ ] SSH Access: `ssh root@your-vps-ip` or `ssh username@your-vps-ip`
-- [ ] Domain Name: `_________________` (optional but recommended)
-- [ ] Email for SSL: `_________________`
+- [ ] VPS IP Address: `74.208.72.38`
+- [ ] SSH Access: `ssh root@74.208.72.38 or `ssh username@your-vps-ip`
+- [ ] Domain Name: `74.208.72.38:3000 (optional but recommended)
+- [ ] Email for SSL: `sheapatterson@icloud.com`
 
 ### **✅ AWS Credentials Ready**
-- [ ] AWS Access Key ID: `_________________`
-- [ ] AWS Secret Access Key: `_________________`
-- [ ] Cognito User Pool ID: `_________________`
-- [ ] Cognito Client ID: `_________________`
-- [ ] S3 Bucket Name: `_________________`
+- [ ] AWS Access Key ID: `AKIATIGI2FSHYA7ZXSXV`
+- [ ] AWS Secret Access Key: `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`
+- [ ] Cognito User Pool ID: `us-east-1_1c0V6g4OQ'
+- [ ] Cognito Client ID: `682jtce3sr02pne6vf9f0tk8ak`
+- [ ] S3 Bucket Name: `virtualhems-assets-223759445135'
 - [ ] DynamoDB Tables: Created and populated
 
 ### **✅ Local Preparation**

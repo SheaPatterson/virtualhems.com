@@ -23,12 +23,16 @@ S3_BUCKET=virtualhems-...
 
 ---
 
-## 🔧 Optional: Redis Management Interface
+## 🔧 Redis Configuration
 ```
-REDIS_COMMANDER_USER=admin
-REDIS_COMMANDER_PASSWORD=RedisAdmin2024!
+REDIS_URL=redis://your-redis-host:6379
 ```
-**For accessing Redis database through web interface**
+**Use your actual Redis instance connection string**
+
+Examples:
+- **Local Redis**: `redis://localhost:6379`
+- **Redis Cloud**: `redis://username:password@host:port`
+- **AWS ElastiCache**: `redis://your-cluster.cache.amazonaws.com:6379`
 
 ---
 
@@ -47,6 +51,7 @@ REDIS_COMMANDER_PASSWORD=RedisAdmin2024!
 ## 🔒 Security Notes
 
 - **Never share** your AWS credentials
+- **Keep Redis URL secure** if it contains passwords
 - **AWS credentials** should have minimal required permissions
 - **Keep environment variables** secure in Dokploy
 
@@ -55,8 +60,9 @@ REDIS_COMMANDER_PASSWORD=RedisAdmin2024!
 ## ✅ Verification
 
 After adding all variables, you should have:
-- **7 environment variables** total (no PostgreSQL needed)
+- **8 environment variables** total
 - **All AWS credentials** properly set
+- **Redis URL** configured
 - **Domain name** configured
 
 **Ready to deploy!** 🚀
@@ -66,7 +72,7 @@ After adding all variables, you should have:
 ## 📊 Your Architecture
 
 **Database**: AWS DynamoDB (already set up)
-**Cache**: Redis (in Docker container)
+**Cache**: Your Redis instance (external)
 **Storage**: AWS S3 (already set up)
 **Auth**: AWS Cognito (already set up)
 **AI**: AWS Bedrock (already set up)

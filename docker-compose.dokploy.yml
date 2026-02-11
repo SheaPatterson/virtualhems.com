@@ -41,7 +41,7 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
       - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
       - S3_BUCKET=${S3_BUCKET}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL}
       - WORKERS=4
       - MAX_CONNECTIONS=1000
     labels:
@@ -53,8 +53,6 @@ services:
       - "traefik.http.routers.virtualhems-backend-http.rule=Host(`api.${DOMAIN}`)"
       - "traefik.http.routers.virtualhems-backend-http.entrypoints=web"
       - "traefik.http.routers.virtualhems-backend-http.middlewares=redirect-to-https"
-    depends_on:
-      - redis
     restart: unless-stopped
     networks:
       - dokploy-network
@@ -91,51 +89,6 @@ services:
       timeout: 10s
       retries: 3
 
-  redis:
-    image: redis:7-alpine
-    command: redis-server --maxmemory 1gb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10 --save 60 10000
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    networks:
-      - dokploy-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
-
-  # Optional: Redis Commander for database management
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-      - HTTP_USER=${REDIS_COMMANDER_USER:-admin}
-      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD:-admin123}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.redis-commander.rule=Host(`redis.${DOMAIN}`)"
-      - "traefik.http.routers.redis-commander.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.redis-commander.entrypoints=websecure"
-      - "traefik.http.services.redis-commander.loadbalancer.server.port=8081"
-      - "traefik.http.routers.redis-commander.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${REDIS_COMMANDER_USER:-admin}:${REDIS_COMMANDER_PASSWORD_HASH}"
-    depends_on:
-      - redis
-    restart: unless-stopped
-    networks:
-      - dokploy-network
-
 networks:
   dokploy-network:
     external: true
-
-volumes:
-  redis_data:
-    driver: local
