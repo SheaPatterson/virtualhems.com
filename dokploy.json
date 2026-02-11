@@ -2,7 +2,7 @@
   "name": "virtualhems",
   "description": "Professional HEMS Simulation Platform with AI-powered dispatch and ATC communications",
   "version": "1.0.0",
-  "type": "compose",
+  "type": "docker-compose",
   "composeFile": "docker-compose.dokploy.yml",
   "repository": {
     "type": "git",

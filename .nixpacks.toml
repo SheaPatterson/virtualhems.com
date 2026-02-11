@@ -1,0 +1,7 @@
+# Disable Nixpacks auto-detection
+# This project uses Docker Compose for deployment
+[build]
+skip = true
+
+[start]
+skip = true
