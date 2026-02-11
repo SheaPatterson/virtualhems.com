@@ -41,7 +41,6 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
       - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
       - S3_BUCKET=${S3_BUCKET}
-      - DATABASE_URL=postgresql://virtualhems:${POSTGRES_PASSWORD}@postgres:5432/virtualhems
       - REDIS_URL=redis://redis:6379
       - WORKERS=4
       - MAX_CONNECTIONS=1000
@@ -55,7 +54,6 @@ services:
       - "traefik.http.routers.virtualhems-backend-http.entrypoints=web"
       - "traefik.http.routers.virtualhems-backend-http.middlewares=redirect-to-https"
     depends_on:
-      - postgres
       - redis
     restart: unless-stopped
     networks:
@@ -92,31 +90,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=virtualhems
-      - POSTGRES_USER=virtualhems
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
-    restart: unless-stopped
-    networks:
-      - dokploy-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U virtualhems -d virtualhems"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
 
   redis:
     image: redis:7-alpine
@@ -164,7 +137,5 @@ networks:
     external: true
 
 volumes:
-  postgres_data:
-    driver: local
   redis_data:
     driver: local

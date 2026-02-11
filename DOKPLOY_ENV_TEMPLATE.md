@@ -23,14 +23,6 @@ S3_BUCKET=virtualhems-...
 
 ---
 
-## 🗄️ Database Configuration
-```
-POSTGRES_PASSWORD=VirtualHEMS2024!Secure
-```
-**Create a strong, unique password**
-
----
-
 ## 🔧 Optional: Redis Management Interface
 ```
 REDIS_COMMANDER_USER=admin
@@ -55,18 +47,26 @@ REDIS_COMMANDER_PASSWORD=RedisAdmin2024!
 ## 🔒 Security Notes
 
 - **Never share** your AWS credentials
-- **Use strong passwords** for database
-- **Keep environment variables** secure in Dokploy
 - **AWS credentials** should have minimal required permissions
+- **Keep environment variables** secure in Dokploy
 
 ---
 
 ## ✅ Verification
 
 After adding all variables, you should have:
-- **9 environment variables** total
+- **7 environment variables** total (no PostgreSQL needed)
 - **All AWS credentials** properly set
-- **Strong database password** created
 - **Domain name** configured
 
 **Ready to deploy!** 🚀
+
+---
+
+## 📊 Your Architecture
+
+**Database**: AWS DynamoDB (already set up)
+**Cache**: Redis (in Docker container)
+**Storage**: AWS S3 (already set up)
+**Auth**: AWS Cognito (already set up)
+**AI**: AWS Bedrock (already set up)
