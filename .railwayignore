@@ -1,0 +1,24 @@
+# Ignore plugin directories that contain .NET/C# code
+plugins/
+*.csproj
+*.sln
+*.cs
+
+# Ignore documentation
+*.md
+!README.md
+
+# Ignore deployment scripts
+*.sh
+
+# Ignore Docker files
+Dockerfile*
+docker-compose*
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore IDE
+.vscode/
+.idea/
