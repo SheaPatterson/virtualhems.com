@@ -1,12 +1,17 @@
 {
-  "build": {
-    "skip": true
-  },
-  "start": {
-    "skip": true
-  },
-  "variables": {
-    "NIXPACKS_NO_CACHE": "1",
-    "NIXPACKS_SKIP_BUILD": "1"
+  "providers": ["python"],
+  "phases": {
+    "setup": {
+      "nixPkgs": ["python311", "pip"]
+    },
+    "install": {
+      "cmds": ["pip install -r backend/requirements.txt"]
+    },
+    "build": {
+      "cmds": []
+    },
+    "start": {
+      "cmd": "cd backend && python server.py"
+    }
   }
 }

@@ -1,10 +1,11 @@
-# Force disable Nixpacks - use Docker Compose instead
-[build]
-skip = true
+[phases.setup]
+nixPkgs = ["python311", "pip"]
 
-[start]
-skip = true
+[phases.install]
+cmds = ["pip install -r backend/requirements.txt"]
+
+[phases.start]
+cmd = "cd backend && python server.py"
 
 [variables]
-NIXPACKS_NO_CACHE = "1"
-NIXPACKS_SKIP_BUILD = "1"
+PYTHONUNBUFFERED = "1"
