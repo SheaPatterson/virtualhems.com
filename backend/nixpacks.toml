@@ -1,2 +1,2 @@
 [start]
-cmd = "bash -c 'source /opt/venv/bin/activate && python server.py'"
+cmd = "/opt/venv/bin/python /app/server.py"
