@@ -1,16 +1,23 @@
 // AWS Backend API Client
 // This replaces the Supabase client with calls to our AWS backend
+import { getAccessToken } from '../aws/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://api.virtualhems.com';
 
-// Get auth token from localStorage (set by Cognito login)
-const getAuthToken = () => {
-  return localStorage.getItem('auth_token') || '';
+// Get auth token from Cognito session
+const getAuthToken = async () => {
+  try {
+    const token = await getAccessToken();
+    return token || '';
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return '';
+  }
 };
 
 // Helper function to make API requests
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const token = getAuthToken();
+  const token = await getAuthToken();
   
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -42,7 +49,7 @@ const tableToEndpoint: Record<string, string> = {
 export const supabase = {
   auth: {
     getSession: async () => {
-      const token = getAuthToken();
+      const token = await getAuthToken();
       return {
         data: {
           session: token ? { access_token: token } : null
@@ -51,7 +58,9 @@ export const supabase = {
       };
     },
     signOut: async () => {
-      localStorage.removeItem('auth_token');
+      // Use the proper Cognito signOut from auth.ts
+      const { signOut } = await import('../aws/auth');
+      await signOut();
       return { error: null };
     }
   },
