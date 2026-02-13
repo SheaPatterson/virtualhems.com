@@ -1,2 +1,2 @@
 [start]
-cmd = "python server.py"
+cmd = ". /opt/venv/bin/activate && python server.py"
