@@ -69,10 +69,17 @@ export const supabase = {
     const endpoint = tableToEndpoint[table] || `/api/${table}`;
     
     return {
-      select: (columns = '*') => ({
-        eq: async (column: string, value: any) => {
+      select: (columns = '*') => {
+        const queryParams: Record<string, string> = {};
+        
+        const buildQuery = () => {
+          const params = new URLSearchParams(queryParams);
+          return params.toString() ? `${endpoint}?${params.toString()}` : endpoint;
+        };
+        
+        const executeQuery = async () => {
           try {
-            const result = await apiRequest(`${endpoint}?${column}=${value}`);
+            const result = await apiRequest(buildQuery());
             // Extract data from response object (e.g., { bases: [...] })
             const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
             const data = dataKey ? result[dataKey] : result;
@@ -81,31 +88,36 @@ export const supabase = {
             console.error('API Error:', error);
             return { data: null, error };
           }
-        },
-        single: async () => {
-          try {
-            const result = await apiRequest(endpoint);
-            const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
-            const data = dataKey ? result[dataKey][0] : result;
-            return { data: data || null, error: null };
-          } catch (error) {
-            console.error('API Error:', error);
-            return { data: null, error };
+        };
+        
+        const queryBuilder = {
+          eq: (column: string, value: any) => {
+            queryParams[column] = String(value);
+            return queryBuilder;
+          },
+          order: (column: string, options?: { ascending?: boolean }) => {
+            // Backend doesn't support ordering yet, just return for compatibility
+            return queryBuilder;
+          },
+          single: async () => {
+            try {
+              const result = await apiRequest(buildQuery());
+              const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
+              const data = dataKey ? result[dataKey][0] : result;
+              return { data: data || null, error: null };
+            } catch (error) {
+              console.error('API Error:', error);
+              return { data: null, error };
+            }
+          },
+          then: async (resolve: any) => {
+            const result = await executeQuery();
+            resolve(result);
           }
-        },
-        then: async (resolve: any) => {
-          try {
-            const result = await apiRequest(endpoint);
-            // Extract data array from response (e.g., { bases: [...] } -> [...])
-            const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
-            const data = dataKey ? result[dataKey] : result;
-            resolve({ data, error: null });
-          } catch (error) {
-            console.error('API Error:', error);
-            resolve({ data: null, error });
-          }
-        }
-      }),
+        };
+        
+        return queryBuilder;
+      },
       
       insert: async (values: any) => {
         try {
@@ -151,4 +163,3 @@ export const supabase = {
     };
   }
 };
-
