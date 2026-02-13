@@ -22,10 +22,20 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    const error = await response.text();
+    throw new Error(`API Error: ${response.statusText} - ${error}`);
   }
 
   return response.json();
+};
+
+// Map table names to API endpoints
+const tableToEndpoint: Record<string, string> = {
+  'hems_bases': '/api/hems-bases',
+  'hospitals': '/api/hospitals',
+  'helicopters': '/api/helicopters',
+  'missions': '/api/missions',
+  'profiles': '/api/profiles',
 };
 
 // Supabase-compatible client interface
@@ -46,71 +56,90 @@ export const supabase = {
     }
   },
   
-  from: (table: string) => ({
-    select: (columns = '*') => ({
-      eq: async (column: string, value: any) => {
-        try {
-          const data = await apiRequest(`/api/${table}?${column}=${value}`);
-          return { data, error: null };
-        } catch (error) {
-          return { data: null, error };
-        }
-      },
-      single: async () => {
-        try {
-          const data = await apiRequest(`/api/${table}`);
-          return { data: data[0] || null, error: null };
-        } catch (error) {
-          return { data: null, error };
-        }
-      },
-      then: async (resolve: any) => {
-        try {
-          const data = await apiRequest(`/api/${table}`);
-          resolve({ data, error: null });
-        } catch (error) {
-          resolve({ data: null, error });
-        }
-      }
-    }),
+  from: (table: string) => {
+    const endpoint = tableToEndpoint[table] || `/api/${table}`;
     
-    insert: async (values: any) => {
-      try {
-        const data = await apiRequest(`/api/${table}`, {
-          method: 'POST',
-          body: JSON.stringify(values)
-        });
-        return { data, error: null };
-      } catch (error) {
-        return { data: null, error };
-      }
-    },
-    
-    update: async (values: any) => ({
-      eq: async (column: string, value: any) => {
+    return {
+      select: (columns = '*') => ({
+        eq: async (column: string, value: any) => {
+          try {
+            const result = await apiRequest(`${endpoint}?${column}=${value}`);
+            // Extract data from response object (e.g., { bases: [...] })
+            const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
+            const data = dataKey ? result[dataKey] : result;
+            return { data, error: null };
+          } catch (error) {
+            console.error('API Error:', error);
+            return { data: null, error };
+          }
+        },
+        single: async () => {
+          try {
+            const result = await apiRequest(endpoint);
+            const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
+            const data = dataKey ? result[dataKey][0] : result;
+            return { data: data || null, error: null };
+          } catch (error) {
+            console.error('API Error:', error);
+            return { data: null, error };
+          }
+        },
+        then: async (resolve: any) => {
+          try {
+            const result = await apiRequest(endpoint);
+            // Extract data array from response (e.g., { bases: [...] } -> [...])
+            const dataKey = Object.keys(result).find(k => Array.isArray(result[k]));
+            const data = dataKey ? result[dataKey] : result;
+            resolve({ data, error: null });
+          } catch (error) {
+            console.error('API Error:', error);
+            resolve({ data: null, error });
+          }
+        }
+      }),
+      
+      insert: async (values: any) => {
         try {
-          const data = await apiRequest(`/api/${table}/${value}`, {
-            method: 'PUT',
+          const data = await apiRequest(endpoint, {
+            method: 'POST',
             body: JSON.stringify(values)
           });
           return { data, error: null };
         } catch (error) {
+          console.error('API Error:', error);
           return { data: null, error };
         }
-      }
-    }),
-    
-    delete: () => ({
-      eq: async (column: string, value: any) => {
-        try {
-          await apiRequest(`/api/${table}/${value}`, {
-            method: 'DELETE'
-          });
-          return { error: null };
-        } catch (error) {
-          return { error };
+      },
+      
+      update: async (values: any) => ({
+        eq: async (column: string, value: any) => {
+          try {
+            const data = await apiRequest(`${endpoint}/${value}`, {
+              method: 'PUT',
+              body: JSON.stringify(values)
+            });
+            return { data, error: null };
+          } catch (error) {
+            console.error('API Error:', error);
+            return { data: null, error };
+          }
         }
-      }
-    })
-  })
+      }),
+      
+      delete: () => ({
+        eq: async (column: string, value: any) => {
+          try {
+            await apiRequest(`${endpoint}/${value}`, {
+              method: 'DELETE'
+            });
+            return { error: null };
+          } catch (error) {
+            console.error('API Error:', error);
+            return { error };
+          }
+        }
+      })
+    };
+  }
 };
+
