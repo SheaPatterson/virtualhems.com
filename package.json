@@ -88,7 +88,7 @@
     "@vitejs/plugin-react-swc": "^3.7.0",
     "autoprefixer": "^10.4.20",
     "cpx": "^1.5.0",
-    "electron": "^32.0.1",
+    "electron": "^35.7.5",
     "electron-builder": "^24.13.3",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
