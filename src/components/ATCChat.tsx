@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Radio, Send, Volume2, Mic, MicOff } from 'lucide-react';
-import { atcAPI, dispatchAPI } from '@/integrations/aws/api';
+import { atcAPI, dispatchAPI } from '@/integrations/appwrite/api';
 import { toast } from 'sonner';
 
 interface Message {

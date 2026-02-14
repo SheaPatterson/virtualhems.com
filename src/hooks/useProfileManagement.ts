@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthGuard';
-import { profilesAPI, UserProfile } from '@/integrations/aws/api';
+import { profilesAPI, UserProfile } from '@/integrations/appwrite/api';
 import { toast } from 'sonner';
 
 // Re-export Profile type for backwards compatibility

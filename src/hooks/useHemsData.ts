@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { dataAPI, HemsBase, Hospital, Helicopter } from '@/integrations/aws/api';
+import { dataAPI, HemsBase, Hospital, Helicopter } from '@/integrations/appwrite/api';
 
 interface HemsDataState {
   bases: HemsBase[];

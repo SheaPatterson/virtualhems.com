@@ -1,64 +1,37 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Loader2, Activity, ShieldAlert } from 'lucide-react';
-import { 
-  getCurrentUser, 
-  signIn as cognitoSignIn, 
-  signOut as cognitoSignOut,
-  signUp as cognitoSignUp,
-  confirmSignUp,
-  getIdToken,
-  AuthUser
-} from '@/integrations/aws/auth';
-import { authAPI, UserProfile } from '@/integrations/aws/api';
+import { account } from '@/lib/appwrite';
+import { Models } from 'appwrite';
 
 interface AuthContextType {
-  user: AuthUser | null;
-  profile: UserProfile | null;
+  user: Models.User<Models.Preferences> | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ needsConfirmation: boolean }>;
-  confirmAccount: (email: string, code: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  profile: null,
   isLoading: true,
   signIn: async () => {},
-  signUp: async () => ({ needsConfirmation: false }),
-  confirmAccount: async () => {},
+  signUp: async () => {},
   signOut: async () => {},
-  refreshProfile: async () => {}
+  refreshUser: async () => {}
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadUser = useCallback(async () => {
     try {
-      const currentUser = await getCurrentUser();
+      const currentUser = await account.get();
       setUser(currentUser);
-      
-      if (currentUser) {
-        // Fetch full profile from backend
-        try {
-          const { user: profileData } = await authAPI.me();
-          setProfile(profileData);
-        } catch (e) {
-          console.error('Failed to load profile:', e);
-        }
-      } else {
-        setProfile(null);
-      }
     } catch (error) {
-      console.error('Auth check error:', error);
       setUser(null);
-      setProfile(null);
     } finally {
       setIsLoading(false);
     }
@@ -69,53 +42,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loadUser]);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      await cognitoSignIn(email, password);
-      await loadUser();
-    } catch (error: any) {
-      if (error.code === 'UserNotConfirmedException') {
-        throw new Error('Please verify your email first');
-      }
-      throw error;
-    }
+    await account.createEmailPasswordSession(email, password);
+    await loadUser();
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const result = await cognitoSignUp(email, password, firstName, lastName);
-    return { needsConfirmation: !result.userConfirmed };
-  };
-
-  const confirmAccount = async (email: string, code: string) => {
-    await confirmSignUp(email, code);
+  const signUp = async (email: string, password: string, name: string) => {
+    await account.create('unique()', email, password, name);
+    await signIn(email, password);
   };
 
   const signOut = async () => {
-    await cognitoSignOut();
+    await account.deleteSession('current');
     setUser(null);
-    setProfile(null);
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      try {
-        const { user: profileData } = await authAPI.me();
-        setProfile(profileData);
-      } catch (e) {
-        console.error('Failed to refresh profile:', e);
-      }
-    }
+    await loadUser();
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile,
       isLoading, 
       signIn, 
       signUp, 
-      confirmAccount, 
       signOut,
-      refreshProfile
+      refreshUser: refreshProfile
     }}>
       {children}
     </AuthContext.Provider>

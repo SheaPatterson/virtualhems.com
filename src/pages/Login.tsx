@@ -13,19 +13,16 @@ type AuthMode = 'login' | 'register' | 'confirm';
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, confirmAccount, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('login');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState('');
   
   // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [confirmCode, setConfirmCode] = useState('');
+  const [name, setName] = useState('');
 
   // Redirect if already logged in
   if (user) {
@@ -45,13 +42,7 @@ function Login() {
       toast.success('Welcome back, Pilot!');
     } catch (error: any) {
       console.error('Login error:', error);
-      if (error.message?.includes('verify')) {
-        setPendingEmail(email);
-        setMode('confirm');
-        toast.info('Please verify your email first');
-      } else {
-        toast.error(error.message || 'Login failed. Check your credentials.');
-      }
+      toast.error(error.message || 'Login failed. Check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -62,42 +53,16 @@ function Login() {
     setIsLoading(true);
     
     try {
-      const result = await signUp(email, password, firstName, lastName);
-      
-      if (result.needsConfirmation) {
-        setPendingEmail(email);
-        setMode('confirm');
-        toast.success('Registration successful! Check your email for verification code.');
-      } else {
-        // Auto-login if no confirmation needed
-        await signIn(email, password);
-        navigate('/dashboard', { replace: true });
-        toast.success('Welcome to HEMS OPS-CENTER!');
-      }
+      await signUp(email, password, name);
+      navigate('/dashboard', { replace: true });
+      toast.success('Welcome to HEMS OPS-CENTER!');
     } catch (error: any) {
       console.error('Registration error:', error);
-      if (error.message?.includes('exists') || error.code === 'UsernameExistsException') {
+      if (error.message?.includes('exists') || error.code === 'user_already_exists') {
         toast.error('Email already registered. Try logging in.');
       } else {
         toast.error(error.message || 'Registration failed. Please try again.');
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      await confirmAccount(pendingEmail, confirmCode);
-      toast.success('Email verified! You can now log in.');
-      setEmail(pendingEmail);
-      setMode('login');
-    } catch (error: any) {
-      console.error('Confirmation error:', error);
-      toast.error(error.message || 'Invalid verification code.');
     } finally {
       setIsLoading(false);
     }
@@ -188,33 +153,19 @@ function Login() {
           {/* Register Form */}
           {mode === 'register' && (
             <form onSubmit={handleRegister} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-xs font-bold uppercase tracking-wide flex items-center">
-                    <User className="w-3 h-3 mr-1" /> First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    placeholder="John"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="h-12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-xs font-bold uppercase tracking-wide">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="h-12"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wide flex items-center">
+                  <User className="w-3 h-3 mr-1" /> Full Name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className="h-12"
+                />
               </div>
               
               <div className="space-y-2">
@@ -259,44 +210,12 @@ function Login() {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Min 8 chars with uppercase, lowercase, and number</p>
+                <p className="text-[10px] text-muted-foreground">Min 8 characters</p>
               </div>
               
               <Button type="submit" className="w-full h-14 text-lg font-black italic uppercase" disabled={isLoading}>
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                 {isLoading ? 'Creating Account...' : 'Begin Tour of Duty'}
-              </Button>
-            </form>
-          )}
-
-          {/* Confirm Form */}
-          {mode === 'confirm' && (
-            <form onSubmit={handleConfirm} className="space-y-4">
-              <div className="text-center p-4 bg-primary/5 rounded-xl border border-primary/20">
-                <CheckCircle className="w-8 h-8 mx-auto text-primary mb-2" />
-                <p className="text-sm font-medium">Verification code sent to:</p>
-                <p className="text-primary font-bold">{pendingEmail}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmCode" className="text-xs font-bold uppercase tracking-wide">
-                  Verification Code
-                </Label>
-                <Input
-                  id="confirmCode"
-                  placeholder="123456"
-                  value={confirmCode}
-                  onChange={(e) => setConfirmCode(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="h-12 text-center text-2xl tracking-[0.5em] font-mono"
-                  maxLength={6}
-                />
-              </div>
-              
-              <Button type="submit" className="w-full h-14 text-lg font-black italic uppercase" disabled={isLoading}>
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                {isLoading ? 'Verifying...' : 'Verify Email'}
               </Button>
             </form>
           )}
@@ -316,14 +235,6 @@ function Login() {
                 Already registered?{' '}
                 <Button variant="link" className="p-0 h-auto font-bold text-primary" onClick={() => setMode('login')}>
                   Sign in
-                </Button>
-              </p>
-            )}
-            {mode === 'confirm' && (
-              <p className="text-sm text-muted-foreground">
-                Wrong email?{' '}
-                <Button variant="link" className="p-0 h-auto font-bold text-primary" onClick={() => setMode('register')}>
-                  Start over
                 </Button>
               </p>
             )}

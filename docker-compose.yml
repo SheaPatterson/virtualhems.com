@@ -27,12 +27,9 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - AWS_REGION=${AWS_REGION}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
-      - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
-      - S3_BUCKET=${S3_BUCKET}
+      - APPWRITE_ENDPOINT=http://localhost:8080
+      - APPWRITE_PROJECT_ID=${APPWRITE_PROJECT_ID}
+      - APPWRITE_API_KEY=${APPWRITE_API_KEY}
       - ENVIRONMENT=production
     volumes:
       - ./backend:/app
@@ -50,9 +47,8 @@ services:
       - "8787:8787"
       - "8788:8788"
     environment:
-      - AWS_REGION=${AWS_REGION}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - APPWRITE_ENDPOINT=http://localhost:8080
+      - APPWRITE_PROJECT_ID=${APPWRITE_PROJECT_ID}
     volumes:
       - ./backend:/app
       - ./logs:/var/log/virtualhems
